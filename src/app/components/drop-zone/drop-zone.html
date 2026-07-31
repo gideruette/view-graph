@@ -1,0 +1,7 @@
+<div class="dropzone" [class.over]="over()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)">
+  <div>Drop view-graph.json file(s) here</div>
+  <div class="row" style="margin-top: 8px; justify-content: center; display: flex">
+    <button class="btn btn-primary" (click)="onChoose()">Choose file(s)…</button>
+    <input #filePicker type="file" accept=".json,application/json" multiple class="sr-only" tabindex="-1" (change)="onFileChange($event)" />
+  </div>
+</div>

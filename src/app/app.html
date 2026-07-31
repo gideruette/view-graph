@@ -1,0 +1,15 @@
+<vg-drop-overlay />
+<vg-topbar />
+<vg-filter-bar />
+<vg-banners />
+<main class="layout" id="layout">
+  <vg-nav-panel />
+  @if (store.layoutMode() === 'clusters' && store.clusterDisplay() === 'tree') {
+    <vg-tree-view />
+  } @else {
+    <vg-graph-canvas />
+  }
+  <vg-detail-panel />
+</main>
+<vg-status-bar />
+<vg-help-dialog />

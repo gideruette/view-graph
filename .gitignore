@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.angular/
+out-tsc/
+view-graph.json
+view-graph-back.json
+*.local.json

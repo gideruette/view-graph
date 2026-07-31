@@ -1,0 +1,16 @@
+.tv-dir-head{
+  display:flex;align-items:center;gap:6px;width:100%;padding:5px 8px;border:1px solid transparent;
+  border-radius:6px;background:transparent;color:var(--fg);font:inherit;text-align:left;cursor:pointer
+}
+.tv-dir-head:hover{background:var(--bg-3);border-color:var(--border-2)}
+.tv-chevron{
+  flex:none;display:inline-block;width:10px;font-size:9px;color:var(--fg-3);
+  transition:transform .12s ease;transform:rotate(0)
+}
+.tv-chevron.open{transform:rotate(90deg)}
+.tv-dir-name{flex:1;min-width:0;font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tv-dir-count{flex:none;font-size:10px;color:var(--fg-3);background:var(--bg-3);border-radius:999px;padding:0 6px}
+.tv-dir-children{
+  display:flex;flex-direction:column;gap:2px;margin:2px 0 2px 9px;padding-left:10px;
+  border-left:1px dashed var(--border-2)
+}

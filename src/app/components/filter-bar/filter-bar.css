@@ -1,0 +1,13 @@
+/* ============================== FILTER BAR ============================== */
+.filterbar{
+  flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:6px 12px;background:var(--bg-2);border-bottom:1px solid var(--border);z-index:20;
+}
+.filterbar .fgroup{display:flex;align-items:center;gap:5px}
+.filterbar .flabel{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-3);font-weight:600;margin-right:1px}
+.filterbar .sep{width:1px;height:20px;background:var(--border);margin:0 3px}
+.filterbar .cluster-res{gap:6px}
+.filterbar .cluster-res input[type="range"]{
+  width:120px;accent-color:var(--accent);cursor:pointer;
+}
+.filterbar .cluster-res .mono{font-family:var(--mono);text-transform:none;letter-spacing:0;font-size:11px}

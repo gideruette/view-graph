@@ -1,0 +1,30 @@
+@if (vm(); as n) {
+<button
+  type="button"
+  class="ncard k-{{ n.kindClass }}"
+  [class.sel]="n.isSelected"
+  [class.tagged]="!!n.tagColor"
+  [style.--tag-color]="n.tagColor"
+  (click)="onClick()"
+>
+  <div class="stripe"></div>
+  <div class="txt">
+    <div class="nm">{{ n.name }}</div>
+    <div class="sub">{{ n.sub }}</div>
+  </div>
+  <div class="badges">
+    @if (n.isEntry) {
+    <span class="mini" title="entry point">★</span>
+    }
+    @if (n.isCyclic) {
+    <span class="mini" style="color: var(--e-cycle)" title="in a cycle">↺</span>
+    }
+    @if (n.isOrphan) {
+    <span class="mini" style="color: var(--warn)" title="orphan">⌀</span>
+    }
+    @if (n.outCount) {
+    <span class="mini">{{ n.outCount }}</span>
+    }
+  </div>
+</button>
+}

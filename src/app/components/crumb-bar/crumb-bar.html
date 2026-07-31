@@ -1,0 +1,31 @@
+<div class="crumbbar">
+  <button
+    class="btn btn-icon"
+    title="Back (Backspace)"
+    aria-label="Back"
+    [disabled]="!store.canGoBack()"
+    (click)="store.goBack()"
+  >
+    &#8592;
+  </button>
+  <nav class="crumbs" aria-label="Breadcrumb">
+    @for (c of store.crumbs(); track c.key) {
+      <button class="crumb" [class.cur]="c.current" [title]="c.title" [disabled]="!c.action" (click)="c.action?.()">
+        {{ c.label }}
+      </button>
+      @if (!$last) {
+        <span class="crumb-sep">›</span>
+      }
+    }
+  </nav>
+  <div class="right">
+    @if (store.focus()) {
+      <span class="flabel">depth</span>
+      <select (change)="onDepthChange($event)">
+        @for (d of depthOptions; track d) {
+          <option [value]="d" [selected]="store.focusDepth() === d">{{ d === 99 ? '∞' : d }}</option>
+        }
+      </select>
+    }
+  </div>
+</div>

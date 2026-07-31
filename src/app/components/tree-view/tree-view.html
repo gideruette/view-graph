@@ -1,0 +1,67 @@
+<section class="stage">
+  <vg-crumb-bar />
+  <div class="tv-scroll">
+    @if (store.clusterTrees().length) {
+      @for (t of store.clusterTrees(); track t.id) {
+        <div class="tv-cluster" [class.sel]="store.selectedCluster() === t.id">
+          <div
+            class="tv-cluster-head"
+            role="button"
+            tabindex="0"
+            [attr.aria-expanded]="!store.treeCollapsedKeys().has(t.id)"
+            [attr.aria-label]="'Cluster ' + t.label + ', ' + t.subtitle"
+            [title]="t.label + ' — ' + t.subtitle + '. Double-click to open in Layers.'"
+            (click)="onHeaderClick($event, t.id)"
+            (dblclick)="onHeaderDblClick($event, t.id)"
+          >
+            <span class="tv-chevron" [class.open]="!store.treeCollapsedKeys().has(t.id)">&#9656;</span>
+            <span class="tv-cluster-name">{{ t.label }}</span>
+            <span class="tv-cluster-sub">{{ t.subtitle }}</span>
+          </div>
+          @if (!store.treeCollapsedKeys().has(t.id)) {
+            <div class="tv-cluster-body">
+              @for (d of t.root.dirs; track d.key) {
+                <vg-tree-dir [node]="d" />
+              }
+              @for (id of t.root.nodeIds; track id) {
+                <vg-node-card [id]="id" />
+              }
+            </div>
+          }
+        </div>
+      }
+    } @else if (store.stageOverlay(); as ov) {
+      <div class="overlay-msg">
+        <div class="card">
+          @switch (ov.kind) {
+            @case ('nothing') {
+              <h3>Nothing to show</h3>
+              <p>{{ ov.detail || 'No nodes are visible. Reset or enable orphans.' }}</p>
+              <div class="row">
+                @if (store.anyHidden()) {
+                  <button class="btn btn-primary" (click)="store.showEverything()">Show hidden nodes</button>
+                }
+                <button class="btn" [class.btn-primary]="!store.anyHidden()" (click)="store.resetAll()">Reset</button>
+              </div>
+            }
+            @case ('empty') {
+              <h3>Upload an extract</h3>
+              <p>{{ ov.detail || 'Drop one or more view-graph.json files here, or choose them below.' }}</p>
+              <vg-drop-zone />
+              <div class="row" style="margin-top: 12px; justify-content: center; display: flex">
+                <button class="btn" (click)="store.loadDemo()">Load demo dataset</button>
+              </div>
+            }
+            @case ('error') {
+              <h3>Could not load the graph</h3>
+              <p>{{ ov.detail || 'The JSON could not be read.' }}</p>
+              <vg-drop-zone />
+            }
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="empty-note">No clusters to show for the current filters.</div>
+    }
+  </div>
+</section>

@@ -1,0 +1,47 @@
+@if (store.helpOpen()) {
+  <div class="modal-back" (click)="onBackdropClick($event)">
+    <div class="modal">
+      <div class="mh">
+        <h2>View Graph</h2>
+        <button #closeBtn class="btn btn-icon" style="margin-left: auto" (click)="store.closeHelp()">×</button>
+      </div>
+      <div class="mb">
+        <h3>Keyboard</h3>
+        <table class="ktable">
+          @for (r of keyboardShortcuts; track r[0]) {
+            <tr>
+              <td><kbd>{{ r[0] }}</kbd></td>
+              <td>{{ r[1] }}</td>
+            </tr>
+          }
+        </table>
+        <h3>Mouse</h3>
+        <table class="ktable">
+          @for (r of mouseShortcuts; track r[0]) {
+            <tr>
+              <td>{{ r[0] }}</td>
+              <td>{{ r[1] }}</td>
+            </tr>
+          }
+        </table>
+        <h3>Hiding &amp; tags</h3>
+        <div style="font-size: 12px; line-height: 1.7">
+          Extractors label nodes with tags (<code>tech:angular</code>, <code>type:service</code>, …). The
+          <strong>Tags</strong> tab on the left turns them into bulk operations: <strong>👁</strong> hides every node
+          carrying a tag plus the branches only they reached, <strong>only</strong> hides every other tag in the same
+          namespace, and the swatch paints every node carrying the tag.<br />
+          One node at a time: <kbd>H</kbd> (or <em>Hide</em> in the detail panel) takes it off the canvas, and
+          <em>+ tag</em> in the detail panel adds your own tag — which then hides and colours exactly like an
+          extractor's. All of it persists across reloads; <em>Show all</em> in the filter bar puts everything back.
+        </div>
+        <h3>Loading data</h3>
+        <div style="font-size: 12px; line-height: 1.7">
+          Upload one or more SCHEMA.md <strong>v4</strong> extracts via
+          <em>Load JSON…</em> (replace), <em>Add JSON…</em> (merge into the current graph),
+          drag-and-drop, or <code>?data=&lt;url&gt;</code>. Multiple files are merged automatically.
+        </div>
+        <vg-drop-zone />
+      </div>
+    </div>
+  </div>
+}

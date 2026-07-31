@@ -1,0 +1,6 @@
+/* Global reset — view-graph theme lives on the app host (ViewEncapsulation.None). */
+html,
+body {
+  height: 100%;
+  margin: 0;
+}

@@ -1,0 +1,17 @@
+<div class="tv-dir">
+  <button type="button" class="tv-dir-head" [attr.aria-expanded]="isOpen()" (click)="toggle()">
+    <span class="tv-chevron" [class.open]="isOpen()">&#9656;</span>
+    <span class="tv-dir-name">{{ node().name }}</span>
+    <span class="tv-dir-count">{{ node().count }}</span>
+  </button>
+  @if (isOpen()) {
+    <div class="tv-dir-children">
+      @for (d of node().dirs; track d.key) {
+        <vg-tree-dir [node]="d" />
+      }
+      @for (id of node().nodeIds; track id) {
+        <vg-node-card [id]="id" />
+      }
+    </div>
+  }
+</div>

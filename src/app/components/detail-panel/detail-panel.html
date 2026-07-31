@@ -1,0 +1,170 @@
+<aside class="panel panel-right" aria-label="Details">
+  <div style="display: flex; flex-direction: column; min-height: 0; overflow: auto; flex: 1">
+    @if (store.detail(); as d) {
+      <div class="dhead k-{{ d.kindClass }}">
+        <div class="dtitle">
+          <div class="stripe"></div>
+          <div style="min-width: 0">
+            <h2>{{ d.node.name }}</h2>
+            <div class="dsel">{{ d.node.id }}</div>
+          </div>
+        </div>
+        <div class="dtags">
+          @if (d.node.kind) {
+            <span class="tag k-{{ d.kindClass }}">{{ d.node.kind }}</span>
+          }
+          @if (d.isEntry) {
+            <span class="tag accent">★ entry</span>
+          }
+          @if (d.isOrphan) {
+            <span class="tag warn">⌀ orphan</span>
+          }
+          @if (d.isCyclic) {
+            <span class="tag danger">↺ cycle</span>
+          }
+          @for (t of d.tags; track t.tag) {
+            <span
+              class="tag tagchip"
+              [class.tagcolored]="!!t.color"
+              [class.tagoff]="t.hidden"
+              [class.tagmanual]="t.manual"
+              [style.--tag-color]="t.color"
+            >
+              <button class="tagname" [title]="'Open the Tags tab to hide or colour ' + t.tag" (click)="store.setTab('tags')">
+                {{ t.tag }}
+              </button>
+              @if (t.manual) {
+                <button
+                  class="tagdel"
+                  [attr.aria-label]="'Remove the tag ' + t.tag"
+                  title="Remove this hand-added tag"
+                  (click)="store.removeNodeTag(d.node.id, t.tag)"
+                >
+                  ×
+                </button>
+              }
+            </span>
+          }
+          @if (addingTag()) {
+            <input
+              #tagInput
+              class="taginput"
+              type="text"
+              placeholder="tag, e.g. review:todo"
+              aria-label="Add a tag to this node"
+              autofocus
+              (keydown.enter)="commitTag(d.node.id, tagInput)"
+              (keydown.escape)="cancelTag(tagInput)"
+              (blur)="commitTag(d.node.id, tagInput)"
+            />
+          } @else {
+            <button class="tag tagadd" title="Add your own tag to this node" (click)="openTagInput()">+ tag</button>
+          }
+        </div>
+        <div class="dactions">
+          <button
+            class="btn"
+            [class.btn-primary]="!d.focusActionDisabled"
+            [disabled]="d.focusActionDisabled"
+            title="Show ancestors + descendants"
+            (click)="store.setFocus(d.node.id)"
+          >
+            {{ d.focusActionLabel }}
+          </button>
+          <button
+            class="btn"
+            [class.btn-primary]="!d.restrictActionDisabled"
+            [disabled]="d.restrictActionDisabled"
+            title="Restrict graph to this node's ancestors + descendants"
+            (click)="store.setEntryRoot(d.node.id)"
+          >
+            {{ d.restrictActionLabel }}
+          </button>
+          <button class="btn" [disabled]="d.expandActionDisabled" title="Show / hide dependencies" (click)="store.toggleExpand(d.node.id)">
+            {{ d.expandActionLabel }}
+          </button>
+          <button class="btn" title="Center the canvas on this node" (click)="store.centerAndReveal(d.node.id)">Center</button>
+          <button
+            class="btn"
+            [class.on]="d.isManuallyHidden"
+            [title]="
+              d.isManuallyHidden
+                ? 'Put this node back on the canvas'
+                : 'Take this node off the canvas, along with the branches only it reaches'
+            "
+            (click)="store.toggleNodeHidden(d.node.id)"
+          >
+            {{ d.isManuallyHidden ? '👁 Unhide' : '🚫 Hide' }}
+          </button>
+        </div>
+        @if (d.isHidden && !d.isManuallyHidden) {
+          <div class="dnote">Off the canvas: a hidden tag or a hidden ancestor pruned it.</div>
+        }
+      </div>
+
+      <div class="dsection">
+        <h3>Identity</h3>
+        @if (d.node.file) {
+          <div class="filerow" style="margin-bottom: 4px">
+            <input readonly [value]="d.node.file" title="file" />
+            <button (click)="copy(d.node.file)">Copy</button>
+          </div>
+        }
+        <dl class="kv" style="margin-top: 6px">
+          <dt>id</dt>
+          <dd>{{ d.node.id }}</dd>
+          <dt>name</dt>
+          <dd>{{ d.node.name }}</dd>
+          @if (d.node.kind) {
+            <dt>kind</dt>
+            <dd>{{ d.node.kind }}</dd>
+          }
+          <dt>depth</dt>
+          <dd>{{ d.depthLabel }}</dd>
+        </dl>
+      </div>
+
+      <div class="dsection">
+        <h3>Incoming (depends on me)<span class="n">{{ d.incoming.length }}</span></h3>
+        @if (d.incoming.length) {
+          <div class="nblist">
+            @for (nb of d.incoming; track nb.id) {
+              <button class="nb" (click)="store.select(nb.id, { reveal: true, center: true })">
+                <span class="eico">{{ nb.glyph }}</span>
+                <span class="nm">{{ nb.name }}</span>
+                <span class="meta">{{ nb.meta }}</span>
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="empty-note">Nobody depends on this node.</div>
+        }
+      </div>
+
+      <div class="dsection">
+        <h3>Outgoing (I depend on)<span class="n">{{ d.outgoing.length }}</span></h3>
+        @if (d.outgoing.length) {
+          <div class="nblist">
+            @for (nb of d.outgoing; track nb.id) {
+              <button class="nb" (click)="store.select(nb.id, { reveal: true, center: true })">
+                <span class="eico">{{ nb.glyph }}</span>
+                <span class="nm">{{ nb.name }}</span>
+                <span class="meta">{{ nb.meta }}</span>
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="empty-note">No outgoing dependencies.</div>
+        }
+      </div>
+    } @else {
+      <div class="dempty">
+        <div class="big">◇</div>
+        <div>Select a node</div>
+        <div style="font-size: 11.5px; margin-top: 6px; line-height: 1.7">
+          Click a node for details and neighbours.<br /><kbd>Alt</kbd>+click to focus its cone.
+        </div>
+      </div>
+    }
+  </div>
+</aside>

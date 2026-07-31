@@ -1,0 +1,142 @@
+<header class="topbar">
+  <div class="brand">
+    <svg
+      class="logo"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="4.2" r="2.4" />
+      <circle cx="5" cy="19.8" r="2.4" />
+      <circle cx="19" cy="19.8" r="2.4" />
+      <path d="M12 6.6v4.2M12 10.8 6.2 17.6M12 10.8l5.8 6.8" />
+    </svg>
+    <div style="min-width: 0">
+      <div class="t1">View Graph</div>
+      <div class="t2" [title]="store.sourceLabelTitle()">
+        {{ store.sourceLabelText() }}
+      </div>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <svg
+      class="si"
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.2"
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.6-3.6" />
+    </svg>
+    <input
+      #searchInput
+      type="search"
+      role="combobox"
+      [attr.aria-expanded]="store.searchResultsVisible()"
+      aria-controls="searchResults"
+      placeholder="Search name, file, kind…"
+      autocomplete="off"
+      spellcheck="false"
+      [value]="store.query()"
+      (input)="onSearchInput($any($event.target).value)"
+      (keydown)="onSearchKeydown($event)"
+    />
+    <button
+      class="sclear"
+      [hidden]="!store.query()"
+      title="Clear search (Esc)"
+      aria-label="Clear search"
+      (click)="onSearchClear()"
+    >
+      &times;
+    </button>
+    <div
+      class="search-results"
+      id="searchResults"
+      role="listbox"
+      [hidden]="!store.searchResultsVisible()"
+    >
+      @for (r of store.searchResults(); track r.id; let i = $index) {
+      <button
+        type="button"
+        class="sr-item"
+        [class.cursor]="i === store.srIndex()"
+        role="option"
+        (click)="onPickResult(r.id)"
+      >
+        <span class="nm">{{ r.name }}</span>
+        <span class="sel">{{ r.sub }}</span>
+      </button>
+      }
+    </div>
+  </div>
+
+  <div class="stats" aria-label="Graph statistics">
+    @for (s of store.stats(); track s.label) {
+    <div class="stat" [class.alert]="s.alert">
+      <b>{{ s.value }}</b><span>{{ s.label }}</span>
+    </div>
+    }
+  </div>
+
+  <div class="topbar-actions">
+    <button
+      class="btn"
+      title="Load one or more view-graph.json files (replaces current)"
+      (click)="onLoadClick()"
+    >
+      Load JSON&hellip;
+    </button>
+    @if (store.canAppendJson()) {
+    <button
+      class="btn"
+      title="Merge additional view-graph.json file(s) into the current graph"
+      (click)="onAddClick()"
+    >
+      Add JSON&hellip;
+    </button>
+    }
+    <input
+      #filePicker
+      type="file"
+      accept=".json,application/json"
+      multiple
+      class="sr-only"
+      tabindex="-1"
+      (change)="onFileChange($event)"
+    />
+    <input
+      #addPicker
+      type="file"
+      accept=".json,application/json"
+      multiple
+      class="sr-only"
+      tabindex="-1"
+      (change)="onAddFileChange($event)"
+    />
+    <button
+      class="btn btn-icon"
+      [title]="themeTitle()"
+      aria-label="Toggle theme"
+      (click)="store.cycleTheme()"
+    >
+      {{ themeIcon() }}
+    </button>
+    <button
+      class="btn btn-icon"
+      title="Keyboard shortcuts &amp; help (?)"
+      aria-label="Help"
+      (click)="store.toggleHelp()"
+    >
+      ?
+    </button>
+  </div>
+</header>

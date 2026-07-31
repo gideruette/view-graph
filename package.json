@@ -1,0 +1,25 @@
+{
+  "name": "view-graph",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Autonomous Angular view-graph explorer — upload a view-graph.json extract",
+  "scripts": {
+    "start": "ng serve --configuration development --port 5180",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development"
+  },
+  "dependencies": {
+    "@angular/common": "22.0.8",
+    "@angular/compiler": "22.0.8",
+    "@angular/core": "22.0.8",
+    "@angular/platform-browser": "22.0.8",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "22.0.7",
+    "@angular/cli": "22.0.7",
+    "@angular/compiler-cli": "22.0.8",
+    "typescript": "~6.0.3"
+  }
+}

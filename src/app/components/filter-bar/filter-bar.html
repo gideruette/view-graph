@@ -1,0 +1,92 @@
+<div class="filterbar">
+  <div class="fgroup">
+    <button
+      class="btn"
+      [attr.aria-pressed]="store.layoutMode() === 'layers'"
+      title="Layered dependency layout"
+      (click)="store.setLayoutMode('layers')"
+    >
+      Layers
+    </button>
+    <button
+      class="btn"
+      [attr.aria-pressed]="store.layoutMode() === 'clusters'"
+      title="Group visible nodes into dependency communities"
+      (click)="store.setLayoutMode('clusters')"
+    >
+      Clusters
+    </button>
+  </div>
+  @if (store.layoutMode() === 'clusters') {
+    <div class="fgroup cluster-res">
+      <label class="flabel" for="cluster-res">Separate</label>
+      <input
+        id="cluster-res"
+        type="range"
+        min="0"
+        [max]="store.clusterMergeMax()"
+        step="1"
+        [value]="store.effectiveClusterMergeSteps()"
+        [disabled]="store.clusterMergeMax() === 0"
+        [title]="mergeTitle()"
+        (input)="onMergeSteps($event)"
+      />
+      <span class="flabel">Merge</span>
+      <span class="flabel mono">{{ store.effectiveClusterMergeSteps() }}/{{ store.clusterMergeMax() }}</span>
+    </div>
+    <div class="fgroup">
+      <button
+        class="btn"
+        [attr.aria-pressed]="store.clusterDisplay() === 'graph'"
+        title="Community hulls on the canvas"
+        (click)="store.setClusterDisplay('graph')"
+      >
+        Graph
+      </button>
+      <button
+        class="btn"
+        [attr.aria-pressed]="store.clusterDisplay() === 'tree'"
+        title="Folder tree of each cluster (directory / sub-directory / file)"
+        (click)="store.setClusterDisplay('tree')"
+      >
+        Tree
+      </button>
+    </div>
+  }
+  <div class="sep"></div>
+  <div class="fgroup">
+    <button
+      class="chip"
+      [attr.aria-pressed]="store.showOrphans()"
+      title="Also show orphan nodes as extra roots on the canvas"
+      (click)="store.toggleShowOrphans()"
+    >
+      ⚠ orphans
+    </button>
+  </div>
+  @if (store.anyHidden()) {
+    <div class="sep"></div>
+    <div class="fgroup">
+      <button
+        class="chip"
+        [attr.aria-pressed]="true"
+        [title]="hiddenTitle()"
+        (click)="store.setTab('tags')"
+      >
+        🚫 {{ store.hiddenNodeIds().size }} hidden
+      </button>
+      <button class="btn" title="Put every hidden node back on the canvas" (click)="store.showEverything()">
+        Show all
+      </button>
+    </div>
+  }
+  <div class="sep"></div>
+  <div class="fgroup">
+    <button class="btn" (click)="store.expandAll()">Expand all</button>
+    <button class="btn" (click)="store.collapseAll()">Collapse</button>
+    @if (!(store.layoutMode() === 'clusters' && store.clusterDisplay() === 'tree')) {
+      <button class="btn" title="Fit to view (0)" (click)="store.fitToView()">Fit</button>
+    }
+    <button class="btn" title="Back to entry points" (click)="store.resetAll()">Reset</button>
+  </div>
+</div>

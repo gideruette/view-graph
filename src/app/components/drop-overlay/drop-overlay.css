@@ -1,0 +1,9 @@
+.drop-overlay{
+  position:fixed;inset:0;z-index:200;background:color-mix(in srgb,var(--accent) 18%,rgba(8,12,18,.55));
+  display:none;align-items:center;justify-content:center;pointer-events:none;
+}
+.drop-overlay.visible{display:flex}
+.drop-overlay .dcard{
+  background:var(--bg-2);border:2px dashed var(--accent);border-radius:14px;padding:26px 36px;
+  font-size:15px;font-weight:650;box-shadow:var(--shadow-2);
+}

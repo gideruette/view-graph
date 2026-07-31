@@ -1,0 +1,7 @@
+/* ============================== STATUS BAR ============================== */
+.statusbar{
+  flex:none;display:flex;align-items:center;gap:10px;padding:4px 12px;font-size:11px;color:var(--fg-3);
+  background:var(--bg-2);border-top:1px solid var(--border);
+}
+.statusbar .s{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.statusbar .right{margin-left:auto;display:flex;gap:8px;align-items:center}

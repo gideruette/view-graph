@@ -1,0 +1,139 @@
+/* ============================== THEME TOKENS ============================== */
+:root{
+  color-scheme: light dark;
+  --bg:#f4f6f9; --bg-2:#ffffff; --bg-3:#e9edf3; --bg-4:#dfe5ee;
+  --fg:#111620; --fg-2:#525d6d; --fg-3:#818c9c;
+  --border:#dbe1ea; --border-2:#c3ccda;
+  --accent:#3457d5; --accent-2:#e7ecfd; --accent-fg:#ffffff;
+  --node-bg:#ffffff; --node-bg-sel:#f2f6ff; --node-shadow:rgba(16,24,40,.10);
+  --k-view:#3457d5; --k-layout:#8b5cf6; --k-component:#0d9488; --k-model:#d97706; --k-unknown:#64748b;
+  --k-entity:#d97706; --k-service:#db2777; --k-pipe:#65a30d; --k-directive:#0891b2; --k-contract:#6366f1;
+  --e-template:#8d99ab; --e-import:#d97706; --e-route:#3457d5; --e-cycle:#e11d48;
+  --hi:#f59e0b; --hi-soft:#fef3c7;
+  --danger:#d92d20; --danger-soft:#fee4e2; --warn:#b54708; --warn-soft:#fef0c7;
+  --ok:#067647; --ok-soft:#dcfae6;
+  --grid:#e3e8f0;
+  --shadow-1:0 1px 2px rgba(16,24,40,.05), 0 2px 6px rgba(16,24,40,.05);
+  --shadow-2:0 4px 12px rgba(16,24,40,.10), 0 16px 32px rgba(16,24,40,.08);
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --r:8px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1218; --bg-2:#151b24; --bg-3:#1c232e; --bg-4:#26303d;
+    --fg:#e8edf4; --fg-2:#a2aebe; --fg-3:#71809a;
+    --border:#26303d; --border-2:#38455a;
+    --accent:#7d9bff; --accent-2:#1b2740; --accent-fg:#0b0f15;
+    --node-bg:#19202b; --node-bg-sel:#20304d; --node-shadow:rgba(0,0,0,.5);
+    --k-view:#7d9bff; --k-layout:#b79bff; --k-component:#2dd4bf; --k-model:#fbbf24; --k-unknown:#94a3b8;
+    --k-entity:#fbbf24; --k-service:#f472b6; --k-pipe:#a3e635; --k-directive:#22d3ee; --k-contract:#a5b4fc;
+    --e-template:#5c6a80; --e-import:#d0912f; --e-route:#7d9bff; --e-cycle:#fb7185;
+    --hi:#fbbf24; --hi-soft:#3a2f10;
+    --danger:#f97066; --danger-soft:#3d1512; --warn:#fdb022; --warn-soft:#3a2a0c;
+    --ok:#47cd89; --ok-soft:#0f2f20;
+    --grid:#1b2230;
+    --shadow-1:0 1px 2px rgba(0,0,0,.4);
+    --shadow-2:0 6px 18px rgba(0,0,0,.55);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1218; --bg-2:#151b24; --bg-3:#1c232e; --bg-4:#26303d;
+  --fg:#e8edf4; --fg-2:#a2aebe; --fg-3:#71809a;
+  --border:#26303d; --border-2:#38455a;
+  --accent:#7d9bff; --accent-2:#1b2740; --accent-fg:#0b0f15;
+  --node-bg:#19202b; --node-bg-sel:#20304d; --node-shadow:rgba(0,0,0,.5);
+  --k-view:#7d9bff; --k-layout:#b79bff; --k-component:#2dd4bf; --k-model:#fbbf24; --k-unknown:#94a3b8;
+  --k-entity:#fbbf24; --k-service:#f472b6; --k-pipe:#a3e635; --k-directive:#22d3ee; --k-contract:#a5b4fc;
+  --e-template:#5c6a80; --e-import:#d0912f; --e-route:#7d9bff; --e-cycle:#fb7185;
+  --hi:#fbbf24; --hi-soft:#3a2f10;
+  --danger:#f97066; --danger-soft:#3d1512; --warn:#fdb022; --warn-soft:#3a2a0c;
+  --ok:#47cd89; --ok-soft:#0f2f20;
+  --grid:#1b2230;
+  --shadow-1:0 1px 2px rgba(0,0,0,.4);
+  --shadow-2:0 6px 18px rgba(0,0,0,.55);
+}
+
+/* ============================== BASE ============================== */
+*,*::before,*::after{box-sizing:border-box}
+html.vg-active, html.vg-active body{height:100%; overflow:hidden}
+.vg-app{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:13px/1.5 var(--sans); -webkit-font-smoothing:antialiased;
+  display:flex; flex-direction:column; overflow:hidden;
+  height:100vh; width:100%; min-height:0;
+}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:11.5px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ============================== SHARED ATOMS ============================== */
+/* Reused across several components (topbar, filter-bar, graph-canvas, crumb-bar, detail-panel, help-dialog…) */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  height:28px;padding:0 10px;border:1px solid var(--border-2);border-radius:6px;
+  background:var(--bg-2);cursor:pointer;white-space:nowrap;
+  transition:background .12s,border-color .12s,color .12s;
+}
+.btn:hover{background:var(--bg-3)}
+.btn:active{transform:translateY(.5px)}
+.btn[aria-pressed="true"],.btn.on{background:var(--accent-2);border-color:var(--accent);color:var(--fg)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-icon{width:28px;padding:0;justify-content:center;font-size:14px}
+.btn-primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn-primary:hover{filter:brightness(1.08);background:var(--accent)}
+
+.chip{
+  display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;
+  border:1px solid var(--border);border-radius:999px;background:var(--bg-2);
+  cursor:pointer;font-size:11.5px;white-space:nowrap;user-select:none;
+}
+.chip:hover{border-color:var(--border-2)}
+.chip[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
+.chip .swatch{width:9px;height:9px;border-radius:3px;background:currentColor;flex:none}
+.chip .dashline{width:14px;height:0;border-top:2px dashed currentColor;flex:none}
+.chip .solidline{width:14px;height:0;border-top:2px solid currentColor;flex:none}
+.chip .thickline{width:14px;height:0;border-top:3.5px solid currentColor;flex:none}
+.tag{
+  display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border-radius:5px;
+  font-size:10.5px;font-weight:600;letter-spacing:.02em;background:var(--bg-3);color:var(--fg-2);
+  border:1px solid var(--border);white-space:nowrap;
+}
+.tag.k-view{color:var(--k-view);border-color:color-mix(in srgb,var(--k-view) 35%,transparent)}
+.tag.k-layout{color:var(--k-layout);border-color:color-mix(in srgb,var(--k-layout) 35%,transparent)}
+.tag.k-component{color:var(--k-component);border-color:color-mix(in srgb,var(--k-component) 35%,transparent)}
+.tag.k-model{color:var(--k-model);border-color:color-mix(in srgb,var(--k-model) 35%,transparent)}
+.tag.k-entity{color:var(--k-entity);border-color:color-mix(in srgb,var(--k-entity) 35%,transparent)}
+.tag.k-service{color:var(--k-service);border-color:color-mix(in srgb,var(--k-service) 35%,transparent)}
+.tag.k-pipe{color:var(--k-pipe);border-color:color-mix(in srgb,var(--k-pipe) 35%,transparent)}
+.tag.k-directive{color:var(--k-directive);border-color:color-mix(in srgb,var(--k-directive) 35%,transparent)}
+.tag.k-contract{color:var(--k-contract);border-color:color-mix(in srgb,var(--k-contract) 35%,transparent)}
+.tag.k-unknown{color:var(--k-unknown)}
+.tag.ok{color:var(--ok);background:var(--ok-soft);border-color:transparent}
+.tag.warn{color:var(--warn);background:var(--warn-soft);border-color:transparent}
+.tag.danger{color:var(--danger);background:var(--danger-soft);border-color:transparent}
+.tag.accent{color:var(--accent);background:var(--accent-2);border-color:transparent}
+
+.empty-note{padding:14px 10px;text-align:center;color:var(--fg-3);font-size:11.5px;border:1px dashed var(--border-2);border-radius:8px}
+
+kbd{
+  font-family:var(--mono);font-size:10px;background:var(--bg-3);border:1px solid var(--border-2);
+  border-bottom-width:2px;border-radius:4px;padding:0 4px;color:var(--fg-2);
+}
+
+/* ============================== APP SHELL LAYOUT ============================== */
+/* Grid + responsive drawer behaviour for <main class="layout"> in app.html, shared by nav-panel and detail-panel. */
+.layout{flex:1;display:grid;grid-template-columns:290px minmax(0,1fr) 330px;min-height:0}
+.layout.no-left{grid-template-columns:0 minmax(0,1fr) 330px}
+.layout.no-right{grid-template-columns:290px minmax(0,1fr) 0}
+.layout.no-left.no-right{grid-template-columns:0 minmax(0,1fr) 0}
+.panel{background:var(--bg-2);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.layout.no-left .panel-left,.layout.no-right .panel-right{display:none}
+@media (max-width:1080px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .panel{position:absolute;top:0;bottom:0;width:290px;z-index:40;box-shadow:var(--shadow-2)}
+  .panel-left{left:0}
+  .panel-right{right:0;width:320px}
+  .layout{position:relative}
+}

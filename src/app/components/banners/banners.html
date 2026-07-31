@@ -1,0 +1,20 @@
+<div class="banners">
+  @for (b of store.banners(); track b.id) {
+    <div class="banner {{ b.kind }}">
+      <div class="bico">{{ b.kind === 'demo' ? '⚠' : b.kind === 'err' ? '!' : 'ℹ' }}</div>
+      <div class="bbody">
+        <strong>{{ b.title }}</strong>
+        @if (b.lines.length) {
+          <ul>
+            @for (line of b.lines; track line) {
+              <li>{{ line }}</li>
+            }
+          </ul>
+        }
+      </div>
+      @if (b.closable) {
+        <button class="bclose" (click)="store.dismissBanner(b.id)">×</button>
+      }
+    </div>
+  }
+</div>

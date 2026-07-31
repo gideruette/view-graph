@@ -1,0 +1,107 @@
+.panel-left{border-right:1px solid var(--border)}
+
+.ptabs{flex:none;display:flex;gap:2px;padding:6px 6px 0;border-bottom:1px solid var(--border)}
+.ptab{
+  flex:1;height:27px;border:0;border-bottom:2px solid transparent;background:none;cursor:pointer;
+  font-size:11.5px;font-weight:600;color:var(--fg-3);border-radius:5px 5px 0 0;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+}
+.ptab:hover{background:var(--bg-3);color:var(--fg-2)}
+.ptab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.ptab .cnt{font-size:10px;background:var(--bg-3);border-radius:999px;padding:0 5px;color:var(--fg-2)}
+.pbody{flex:1;overflow:auto;padding:8px}
+.psection{margin:0 0 12px}
+.phead{
+  display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--fg-3);margin:0 0 6px;padding:0 2px;
+}
+.phead .hint{font-weight:400;text-transform:none;letter-spacing:0;margin-left:auto;color:var(--fg-3)}
+
+/* entry point cards / node lists */
+.nlist{display:flex;flex-direction:column;gap:4px}
+.ncard{
+  display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:7px 8px;
+  border:1px solid var(--border);border-radius:7px;background:var(--bg);cursor:pointer;
+  transition:border-color .12s,background .12s;
+}
+.ncard:hover{border-color:var(--border-2);background:var(--bg-3)}
+.ncard.sel{border-color:var(--accent);background:var(--accent-2)}
+.ncard .stripe{width:3px;align-self:stretch;border-radius:2px;flex:none;background:var(--k-unknown)}
+.ncard.k-view .stripe{background:var(--k-view)} .ncard.k-layout .stripe{background:var(--k-layout)}
+.ncard.k-component .stripe{background:var(--k-component)} .ncard.k-model .stripe{background:var(--k-model)}
+.ncard.k-entity .stripe{background:var(--k-entity)} .ncard.k-service .stripe{background:var(--k-service)}
+.ncard.k-pipe .stripe{background:var(--k-pipe)} .ncard.k-directive .stripe{background:var(--k-directive)}
+.ncard.k-contract .stripe{background:var(--k-contract)}
+/* a coloured tag overrides the kind colour (see the Tags tab) */
+.ncard.tagged .stripe{background:var(--tag-color)}
+.ncard.tagged{border-color:color-mix(in srgb,var(--tag-color) 45%,var(--border))}
+.ncard.tagged.sel{border-color:var(--accent)}
+.ncard .txt{min-width:0;flex:1}
+.ncard .nm{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ncard .sub{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ncard .badges{display:flex;gap:3px;flex:none;align-items:center}
+.ncard .mini{font-size:10px;color:var(--fg-3);font-variant-numeric:tabular-nums}
+
+/* ============================== TAGS TAB ============================== */
+.tagactions{display:flex;gap:6px;margin:0 0 10px}
+.tagactions .btn{flex:1;justify-content:center;height:26px;font-size:11.5px}
+
+.taglist{display:flex;flex-direction:column;gap:3px}
+.tagrow{display:flex;align-items:center;gap:5px;min-width:0}
+.tagrow.off .tagtoggle .tname{text-decoration:line-through;color:var(--fg-3)}
+
+.tagswatch{
+  width:19px;height:19px;flex:none;padding:0;cursor:pointer;appearance:none;-webkit-appearance:none;
+  border:1px solid var(--border-2);border-radius:5px;background:var(--bg-3);
+}
+.tagswatch::-webkit-color-swatch-wrapper{padding:0}
+.tagswatch::-webkit-color-swatch{border:none;border-radius:4px}
+.tagswatch::-moz-color-swatch{border:none;border-radius:4px}
+/* "no colour assigned yet": the swatch only previews what a click would apply */
+.tagswatch.unset{opacity:.3;border-style:dashed}
+.tagswatch:hover{opacity:1;border-color:var(--accent)}
+
+.tagtoggle{
+  flex:1;min-width:0;display:flex;align-items:center;gap:6px;text-align:left;
+  height:26px;padding:0 7px;border:1px solid var(--border);border-radius:6px;
+  background:var(--bg);cursor:pointer;font-size:11.5px;
+  transition:border-color .12s,background .12s;
+}
+.tagtoggle:hover{border-color:var(--border-2);background:var(--bg-3)}
+.tagtoggle .tname{
+  flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:var(--mono);font-size:11px;font-weight:600;
+}
+.tagtoggle .cnt{
+  flex:none;font-size:10px;color:var(--fg-3);background:var(--bg-3);
+  border-radius:999px;padding:0 5px;font-variant-numeric:tabular-nums;
+}
+.tagtoggle .eye{flex:none;font-size:10px;line-height:1;filter:grayscale(1);opacity:.7}
+.tagrow.off .tagtoggle{border-style:dashed;background:none}
+.tagrow.off .tagtoggle .eye{filter:none;opacity:1}
+
+.hiddenrow{display:flex;align-items:center;gap:5px;min-width:0}
+.hiddenrow .tagtoggle{border-style:dashed}
+.hiddenrow .tagtoggle .tname{font-family:var(--sans);font-size:11.5px}
+
+.tagonly,.tagx{
+  flex:none;height:26px;padding:0 6px;border:1px solid transparent;border-radius:6px;
+  background:none;cursor:pointer;color:var(--fg-3);font-size:10.5px;
+}
+.tagonly:hover,.tagx:hover{background:var(--bg-3);border-color:var(--border);color:var(--fg-2)}
+.tagx{width:22px;padding:0;font-size:14px;line-height:1}
+
+/* entry / sub-entry tree */
+.etree{display:flex;flex-direction:column;gap:1px;margin:0 2px}
+.enode{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 8px;border:1px solid transparent;border-radius:6px;
+  background:none;cursor:pointer;font-size:12px;text-align:left;width:100%;
+}
+.enode:hover{background:var(--bg-3)}
+.enode.on{background:var(--accent-2);border-color:var(--accent)}
+.enode .ename{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.enode .emeta{
+  margin-left:auto;font:10px var(--mono);color:var(--fg-3);
+  max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none;
+}

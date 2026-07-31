@@ -1,0 +1,143 @@
+<aside class="panel panel-left" aria-label="Navigation">
+  <div class="ptabs" role="tablist">
+    <button
+      class="ptab"
+      role="tab"
+      [attr.aria-selected]="store.tab() === 'entries'"
+      title="Entry points"
+      (click)="store.setTab('entries')"
+    >
+      Entry <span class="cnt">{{ store.leftPanelEntries().length }}</span>
+    </button>
+    <button
+      class="ptab"
+      role="tab"
+      [attr.aria-selected]="store.tab() === 'orphans'"
+      title="Nodes not reachable from any entry point"
+      (click)="store.setTab('orphans')"
+    >
+      Orphans <span class="cnt">{{ store.leftPanelOrphans().length }}</span>
+    </button>
+    <button
+      class="ptab"
+      role="tab"
+      [attr.aria-selected]="store.tab() === 'tags'"
+      title="Bulk hide / bulk colour nodes by extractor tag"
+      (click)="store.setTab('tags')"
+    >
+      Tags <span class="cnt">{{ store.tagRows().length }}</span>
+    </button>
+  </div>
+  <div class="pbody">
+    @if (!store.data()) {
+      <div class="empty-note">Load a view-graph.json extract to explore it.</div>
+    } @else if (store.tab() === 'tags') {
+      <div class="tagactions">
+        <button class="btn" [disabled]="!store.anyHidden()" (click)="store.showEverything()">Show all</button>
+        <button class="btn" [disabled]="!store.tagColors().size" (click)="store.clearAllTagColors()">Clear colours</button>
+      </div>
+
+      @if (store.activeManualHidden().length) {
+        <div class="psection">
+          <div class="phead">
+            Hidden by hand<span class="hint">click to put back</span>
+          </div>
+          <div class="nlist">
+            @for (id of store.activeManualHidden(); track id) {
+              <div class="hiddenrow">
+                <button class="tagtoggle" [title]="'Put ' + store.nodeName(id) + ' back on the canvas'" (click)="store.toggleNodeHidden(id)">
+                  <span class="tname">{{ store.nodeName(id) }}</span>
+                  <span class="eye">🚫</span>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (!store.hasTags()) {
+        <div class="empty-note">
+          This extract carries no tags. Extractors emit them as <code>nodes[].tags</code> — e.g.
+          <code>tech:angular</code>, <code>type:service</code>. You can also add your own from a node's
+          detail panel.
+        </div>
+      } @else {
+        @for (g of store.tagGroups(); track g.name) {
+          <div class="psection">
+            <div class="phead">{{ g.name }}<span class="hint">◧ colour · 👁 hide</span></div>
+            <div class="taglist">
+              @for (row of g.rows; track row.tag) {
+                <div class="tagrow" [class.off]="row.hidden">
+                  <input
+                    class="tagswatch"
+                    type="color"
+                    [class.unset]="!row.color"
+                    [value]="row.color ?? suggestedColor(row.tag)"
+                    [attr.aria-label]="'Colour every node tagged ' + row.tag"
+                    [title]="
+                      row.color ? 'Change the colour of nodes tagged ' + row.tag : 'Colour every node tagged ' + row.tag
+                    "
+                    (input)="onTagColor(row.tag, $event)"
+                  />
+                  <button
+                    class="tagtoggle"
+                    [attr.aria-pressed]="!row.hidden"
+                    [title]="
+                      row.hidden
+                        ? 'Show nodes tagged ' + row.tag + ' again'
+                        : 'Hide nodes tagged ' + row.tag + ', plus the branches only they reach'
+                    "
+                    (click)="store.toggleTagHidden(row.tag)"
+                  >
+                    <span class="tname">{{ row.label }}</span>
+                    <span class="cnt">{{ row.count }}</span>
+                    <span class="eye">{{ row.hidden ? '🚫' : '👁' }}</span>
+                  </button>
+                  <button
+                    class="tagonly"
+                    [title]="'Hide every other ' + g.name + ' tag'"
+                    (click)="store.isolateTag(row.tag)"
+                  >
+                    only
+                  </button>
+                  @if (row.color) {
+                    <button
+                      class="tagx"
+                      [attr.aria-label]="'Remove the colour of ' + row.tag"
+                      title="Remove colour"
+                      (click)="store.clearTagColor(row.tag)"
+                    >
+                      ×
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+    } @else if (store.tab() === 'orphans') {
+      @if (!store.leftPanelOrphans().length) {
+        <div class="empty-note">No orphans — every node is reachable from an entry point.</div>
+      } @else {
+        <div class="psection">
+          <div class="phead">Orphans<span class="hint">not reachable from entries</span></div>
+          <div class="nlist">
+            @for (id of store.leftPanelOrphans(); track id) {
+              <vg-node-card [id]="id" />
+            }
+          </div>
+        </div>
+      }
+    } @else {
+      <div class="psection">
+        <div class="phead">Entry points<span class="hint">click to restrict tree</span></div>
+        <div class="nlist">
+          @for (id of store.leftPanelEntries(); track id) {
+            <vg-node-card [id]="id" [entryClickSetsRoot]="true" />
+          }
+        </div>
+      </div>
+    }
+  </div>
+</aside>

@@ -1,0 +1,41 @@
+/* ============================== TOP BAR ============================== */
+.topbar{
+  flex:none;display:flex;align-items:center;gap:12px;padding:8px 12px;
+  background:var(--bg-2);border-bottom:1px solid var(--border);z-index:30;
+}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.brand .logo{width:24px;height:24px;flex:none;color:var(--accent)}
+.brand .t1{font-weight:700;font-size:13.5px;letter-spacing:-.01em;white-space:nowrap}
+.brand .t2{font-size:10.5px;color:var(--fg-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34ch}
+.search-wrap{position:relative;flex:1 1 260px;max-width:420px;min-width:130px}
+.search-wrap input{
+  width:100%;height:30px;padding:0 30px 0 30px;border:1px solid var(--border-2);
+  border-radius:7px;background:var(--bg);
+}
+.search-wrap .si{position:absolute;left:9px;top:7px;color:var(--fg-3);pointer-events:none}
+.search-wrap .sclear{position:absolute;right:4px;top:4px;width:22px;height:22px;border:0;background:none;border-radius:5px;cursor:pointer;color:var(--fg-3)}
+.search-wrap .sclear:hover{background:var(--bg-3)}
+.search-results{
+  position:absolute;top:34px;left:0;right:0;max-height:min(58vh,420px);overflow:auto;
+  background:var(--bg-2);border:1px solid var(--border-2);border-radius:8px;box-shadow:var(--shadow-2);z-index:60;padding:4px;
+}
+.search-results .sr-item{
+  display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:6px;cursor:pointer;
+  border:0;background:none;width:100%;text-align:left;
+}
+.search-results .sr-item:hover,.search-results .sr-item.cursor{background:var(--bg-3)}
+.search-results .sr-item .nm{font-weight:600;font-size:12px}
+.search-results .sr-item .sel{font-family:var(--mono);font-size:10.5px;color:var(--fg-3);margin-left:auto}
+.search-results .sr-empty{padding:10px;color:var(--fg-3);text-align:center}
+.stats{display:flex;gap:6px;flex-wrap:nowrap;overflow:hidden}
+.stat{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:44px;padding:2px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);
+  line-height:1.25;
+}
+.stat b{font-size:13px;font-variant-numeric:tabular-nums}
+.stat span{font-size:9.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.04em}
+.stat.clickable{cursor:pointer}
+.stat.clickable:hover{border-color:var(--accent)}
+.stat.alert b{color:var(--warn)}
+.topbar-actions{display:flex;gap:6px;margin-left:auto;align-items:center}

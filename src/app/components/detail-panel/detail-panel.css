@@ -1,0 +1,82 @@
+.panel-right{border-left:1px solid var(--border)}
+
+/* ============================== DETAIL PANEL ============================== */
+.dhead{flex:none;padding:10px 10px 8px;border-bottom:1px solid var(--border)}
+.dhead .dtitle{display:flex;align-items:flex-start;gap:8px}
+.dhead .dtitle .stripe{width:4px;align-self:stretch;border-radius:2px;background:var(--k-unknown);flex:none}
+.dhead.k-view .stripe{background:var(--k-view)} .dhead.k-layout .stripe{background:var(--k-layout)}
+.dhead.k-component .stripe{background:var(--k-component)} .dhead.k-model .stripe{background:var(--k-model)}
+.dhead.k-entity .stripe{background:var(--k-entity)} .dhead.k-service .stripe{background:var(--k-service)}
+.dhead.k-pipe .stripe{background:var(--k-pipe)} .dhead.k-directive .stripe{background:var(--k-directive)}
+.dhead.k-contract .stripe{background:var(--k-contract)}
+.dhead h2{margin:0;font-size:14.5px;letter-spacing:-.01em;word-break:break-word}
+.dhead .dsel{font-family:var(--mono);font-size:11px;color:var(--fg-2);margin-top:1px;word-break:break-all}
+.dhead .dtags{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}
+/* tags — a shortcut to the Tags tab that bulk-hides / bulk-colours them, plus hand-tag editing */
+.dhead .tagchip{padding:0;overflow:hidden}
+.dhead .tagchip .tagname{
+  border:0;background:none;cursor:pointer;color:inherit;
+  padding:1px 6px;font-family:var(--mono);font-size:10px;font-weight:600;
+}
+.dhead .tagchip:hover{border-color:var(--border-2)}
+.dhead .tagchip.tagcolored{
+  color:var(--tag-color);border-color:color-mix(in srgb,var(--tag-color) 45%,transparent);
+  background:color-mix(in srgb,var(--tag-color) 12%,var(--bg-3));
+}
+.dhead .tagchip.tagoff{text-decoration:line-through;opacity:.6}
+/* hand-added tags read as editable: dashed border + a remove affordance */
+.dhead .tagchip.tagmanual{border-style:dashed}
+.dhead .tagchip .tagdel{
+  border:0;border-left:1px solid var(--border);background:none;cursor:pointer;
+  color:var(--fg-3);padding:0 4px;font-size:12px;line-height:1;align-self:stretch;
+}
+.dhead .tagchip .tagdel:hover{background:var(--danger-soft);color:var(--danger)}
+.dhead .tagadd{cursor:pointer;border-style:dashed;color:var(--fg-3);font-family:var(--mono);font-size:10px}
+.dhead .tagadd:hover{border-color:var(--accent);color:var(--accent)}
+.dhead .taginput{
+  height:20px;min-width:130px;padding:0 6px;border:1px solid var(--accent);border-radius:5px;
+  background:var(--bg);font-family:var(--mono);font-size:10.5px;
+}
+.dhead .dnote{
+  margin-top:7px;font-size:11px;color:var(--warn);background:var(--warn-soft);
+  border-radius:5px;padding:3px 7px;
+}
+.dhead .dactions{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+.dsection{border-bottom:1px solid var(--border);padding:9px 10px}
+.dsection:last-child{border-bottom:0}
+.dsection > h3{
+  margin:0 0 6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-3);
+  display:flex;align-items:center;gap:5px;
+}
+.dsection > h3 .n{background:var(--bg-3);border-radius:999px;padding:0 5px;font-size:10px;color:var(--fg-2)}
+.filerow{display:flex;align-items:stretch;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--bg)}
+.filerow input{
+  flex:1;min-width:0;border:0;background:none;padding:5px 7px;font-family:var(--mono);font-size:11px;color:var(--fg-2);
+}
+.filerow button{border:0;border-left:1px solid var(--border);background:var(--bg-3);cursor:pointer;padding:0 8px;font-size:11px;color:var(--fg-2)}
+.filerow button:hover{background:var(--bg-4);color:var(--fg)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:11.5px}
+.kv dt{color:var(--fg-3)}
+.kv dd{margin:0;font-variant-numeric:tabular-nums;word-break:break-word}
+table.io{width:100%;border-collapse:collapse;font-size:11.5px}
+table.io th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--fg-3);font-weight:600;padding:0 6px 3px 0;border-bottom:1px solid var(--border)}
+table.io td{padding:3px 6px 3px 0;vertical-align:top;border-bottom:1px solid var(--border)}
+table.io tr:last-child td{border-bottom:0}
+table.io .nm{font-family:var(--mono);font-weight:600;color:var(--fg);white-space:nowrap}
+table.io .ty{font-family:var(--mono);color:var(--fg-2);word-break:break-word}
+table.io .fl{white-space:nowrap;text-align:right}
+.pills{display:flex;flex-wrap:wrap;gap:4px}
+.nblist{display:flex;flex-direction:column;gap:3px}
+.nb{
+  display:flex;align-items:center;gap:6px;width:100%;text-align:left;padding:4px 6px;border-radius:6px;
+  border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:11.5px;
+}
+.nb:hover{border-color:var(--accent);background:var(--accent-2)}
+.nb .eico{flex:none;width:16px;text-align:center;font-size:11px;color:var(--fg-3)}
+.nb .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nb .meta{margin-left:auto;font-size:10px;color:var(--fg-3);font-family:var(--mono);white-space:nowrap}
+.dempty{padding:26px 14px;text-align:center;color:var(--fg-3)}
+.dempty .big{font-size:26px;opacity:.5;margin-bottom:6px}
+.usage{font-size:11px;color:var(--fg-2);padding:3px 0;border-bottom:1px dashed var(--border)}
+.usage:last-child{border-bottom:0}
+.usage .loc{font-family:var(--mono);color:var(--fg-3)}

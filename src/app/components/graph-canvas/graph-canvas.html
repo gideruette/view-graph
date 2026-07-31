@@ -1,0 +1,199 @@
+<section class="stage">
+  <vg-crumb-bar />
+  <div class="canvas-wrap" #canvasWrap>
+    <svg
+      #svgRoot
+      class="graph"
+      [class.panning]="panning()"
+      tabindex="0"
+      role="application"
+      aria-label="Component graph"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerCancel()"
+      (wheel)="onWheel($event)"
+    >
+      <defs>
+        <marker id="ar-template" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0.6 L10,5 L0,9.4 z" fill="var(--e-template)" />
+        </marker>
+        <marker id="ar-cycle" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0.6 L10,5 L0,9.4 z" fill="var(--e-cycle)" />
+        </marker>
+        <marker id="ar-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0.6 L10,5 L0,9.4 z" fill="var(--hi)" />
+        </marker>
+      </defs>
+      <g [attr.transform]="'translate(' + store.view().x + ',' + store.view().y + ') scale(' + store.view().k + ')'">
+        @if (store.layoutMode() === 'clusters') {
+          <g class="cluster-bridges">
+            @for (b of store.clusterBridges(); track b.key) {
+              <g class="bridge-lg" [class.dim]="b.isDim">
+                <path [attr.d]="b.d" class="bridge-hit" />
+                <path
+                  [attr.d]="b.d"
+                  class="bridge"
+                  [attr.stroke-width]="b.strokeWidth"
+                  [attr.marker-end]="'url(#ar-template)'"
+                />
+                <title>{{ b.title }}</title>
+              </g>
+            }
+          </g>
+          <g class="cluster-hulls">
+            @for (h of store.clusterHulls(); track h.id) {
+              <g
+                class="cluster-hull c-{{ h.colorIndex % 8 }}"
+                [class.sel]="h.isSelected"
+                [class.dim]="h.isDim"
+              >
+                <path class="chull" [attr.d]="h.path" />
+                <g
+                  class="cluster-label"
+                  role="button"
+                  tabindex="0"
+                  [attr.aria-label]="'Cluster ' + h.label + ', ' + h.subtitle"
+                  (click)="onClusterClick($event, h.id)"
+                  (dblclick)="onClusterDblClick($event, h.id)"
+                >
+                  <text class="clabel" [attr.x]="h.labelX" [attr.y]="h.labelY">{{ h.label }}</text>
+                  <text class="csub" [attr.x]="h.labelX" [attr.y]="h.labelY + 14">{{ h.subtitle }}</text>
+                  <title>{{ h.label }} — {{ h.subtitle }}. Double-click to open in Layers.</title>
+                </g>
+              </g>
+            }
+          </g>
+        }
+        <g>
+          @for (e of store.graphEdges(); track e.key) {
+            <g class="edge-lg" [class.dim]="e.isDim">
+              <path [attr.d]="e.d" class="ehit" />
+              <path
+                [attr.d]="e.d"
+                class="edge k-template"
+                [class.cyc]="e.isBack"
+                [class.hot]="e.isHot"
+                [attr.marker-end]="'url(#ar-' + (e.isHot ? 'hot' : e.isBack ? 'cycle' : 'template') + ')'"
+              />
+              <title>{{ e.title }}</title>
+            </g>
+          }
+        </g>
+        <g>
+          @for (n of store.graphNodes(); track n.id) {
+            <g
+              class="node k-{{ n.kindClass }}"
+              [class.entry]="n.isEntry"
+              [class.sel]="n.isSelected"
+              [class.kb]="n.isKb"
+              [class.hot]="n.isHot"
+              [class.match]="n.isMatch"
+              [class.dim]="n.isDim"
+              [class.tagged]="!!n.tagColor"
+              [style.--tag-color]="n.tagColor"
+              [attr.transform]="'translate(' + n.x + ',' + n.y + ')'"
+              [attr.data-nid]="n.id"
+              [attr.aria-label]="n.ariaLabel"
+              tabindex="0"
+              role="button"
+              (pointerdown)="onNodePointerDown($event)"
+              (click)="onNodeClick($event, n.id)"
+              (dblclick)="onNodeDblClick($event, n.id)"
+              (focus)="onNodeFocus(n.id)"
+            >
+              <rect class="nring" x="-4" y="-4" [attr.width]="NODE_W + 8" [attr.height]="NODE_H + 8" rx="12" />
+              <rect class="nbox" x="0" y="0" [attr.width]="NODE_W" [attr.height]="NODE_H" rx="9" />
+              <rect class="nstripe" x="5" y="8" width="3.5" [attr.height]="NODE_H - 16" rx="2" />
+
+              @for (b of badges(n); track b.cls; let i = $index) {
+                <text [attr.x]="NODE_W - 9 - i * 14" y="16" class="nbadge {{ b.cls }}" text-anchor="end">
+                  {{ b.glyph }}
+                  <title>{{ b.title }}</title>
+                </text>
+              }
+
+              <text x="15" y="22" class="ncls">{{ fitTitle(n) }}</text>
+              <text x="15" y="40" class="nsel">{{ fitSub(n) }}</text>
+
+              @if (n.childCount > 0 && store.layoutMode() === 'layers') {
+                <g class="ntoggle" (click)="onToggleClick($event, n.id)">
+                  <circle class="ntoggle-c" [attr.cx]="NODE_W / 2" [attr.cy]="NODE_H" r="9" />
+                  <text [attr.x]="NODE_W / 2" [attr.y]="NODE_H + 3.5" class="ntoggle-t">{{ n.isOpen ? '−' : n.childCount }}</text>
+                  <title>{{ toggleTitle(n) }}</title>
+                </g>
+              }
+            </g>
+          }
+        </g>
+      </g>
+    </svg>
+
+    @if (store.stageOverlay(); as ov) {
+      <div class="overlay-msg">
+        <div class="card">
+          @switch (ov.kind) {
+            @case ('nothing') {
+              <h3>Nothing to show</h3>
+              <p>{{ ov.detail || 'No nodes are visible. Reset or enable orphans.' }}</p>
+              <div class="row">
+                @if (store.anyHidden()) {
+                  <button class="btn btn-primary" (click)="store.showEverything()">Show hidden nodes</button>
+                }
+                <button class="btn" [class.btn-primary]="!store.anyHidden()" (click)="store.resetAll()">Reset</button>
+              </div>
+            }
+            @case ('empty') {
+              <h3>Upload an extract</h3>
+              <p>{{ ov.detail || 'Drop one or more view-graph.json files here, or choose them below.' }}</p>
+              <vg-drop-zone />
+              <div class="row" style="margin-top: 12px; justify-content: center; display: flex">
+                <button class="btn" (click)="store.loadDemo()">Load demo dataset</button>
+              </div>
+            }
+            @case ('error') {
+              <h3>Could not load the graph</h3>
+              <p>{{ ov.detail || 'The JSON could not be read.' }}</p>
+              <vg-drop-zone />
+            }
+          }
+        </div>
+      </div>
+    }
+
+    <details class="legend" [open]="store.legendOpen()" (toggle)="onLegendToggle($event)">
+      <summary>Legend</summary>
+      <div class="lbody">
+        <div class="lrow">
+          <span class="sw"
+            ><svg width="14" height="8"><line x1="0" y1="4" x2="14" y2="4" stroke="var(--e-template)" stroke-width="1.6" /></svg
+          ></span>
+          <span>depends on</span>
+        </div>
+        <div class="lrow">
+          <span class="sw"
+            ><svg width="14" height="8"
+              ><line x1="0" y1="4" x2="14" y2="4" stroke="var(--e-cycle)" stroke-width="2" stroke-dasharray="1 5" /></svg
+          ></span>
+          <span>cycle / back edge</span>
+        </div>
+        <hr />
+        <div class="lrow"><span class="sw">★</span><span>entry point</span></div>
+        <div class="lrow"><span class="sw">⌀</span><span>orphan</span></div>
+        <div class="lrow"><span class="sw">↺</span><span>in a cycle</span></div>
+        @if (store.layoutMode() === 'clusters') {
+          <hr />
+          <div class="lrow"><span class="sw">▣</span><span>community hull</span></div>
+          <div class="lrow"><span class="sw">⇢</span><span>inter-cluster deps</span></div>
+        }
+      </div>
+    </details>
+
+    <div class="zoomctl">
+      <button class="btn" title="Zoom in (+)" aria-label="Zoom in" (click)="store.zoomBy(1.25)">+</button>
+      <div class="zoomlvl">{{ zoomLabel() }}</div>
+      <button class="btn" title="Zoom out (-)" aria-label="Zoom out" (click)="store.zoomBy(1 / 1.25)">&minus;</button>
+      <button class="btn" title="Fit to view (0)" aria-label="Fit to view" (click)="store.fitToView()">⤢</button>
+    </div>
+  </div>
+</section>

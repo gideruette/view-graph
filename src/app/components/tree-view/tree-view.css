@@ -1,0 +1,20 @@
+.stage{position:relative;min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--bg)}
+.tv-scroll{position:relative;flex:1;min-height:0;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:6px}
+
+.tv-cluster{border-bottom:1px solid var(--border-2)}
+.tv-cluster:last-child{border-bottom:none}
+.tv-cluster.sel .tv-cluster-head{color:var(--accent)}
+
+.tv-cluster-head{
+  display:flex;align-items:baseline;gap:8px;padding:8px 4px;cursor:pointer;user-select:none;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--fg-2)
+}
+.tv-cluster-head:hover{color:var(--fg)}
+.tv-cluster .tv-chevron{
+  flex:none;display:inline-block;width:10px;font-size:9px;color:var(--fg-3);
+  transition:transform .12s ease;transform:rotate(0)
+}
+.tv-cluster .tv-chevron.open{transform:rotate(90deg)}
+.tv-cluster-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tv-cluster-sub{font-weight:400;text-transform:none;letter-spacing:0;color:var(--fg-3);font-size:11px}
+.tv-cluster-body{padding:2px 0 10px 2px;display:flex;flex-direction:column;gap:2px}

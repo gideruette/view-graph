@@ -1,0 +1,136 @@
+/* ============================== STAGE ============================== */
+.stage{position:relative;min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--bg)}
+
+.canvas-wrap{position:relative;flex:1;min-height:0;overflow:hidden}
+svg.graph{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;background:
+  radial-gradient(circle at 1px 1px, var(--grid) 1px, transparent 0) 0 0/22px 22px}
+svg.graph.panning{cursor:grabbing}
+svg.graph:focus{outline:none}
+
+/* edges */
+.edge{fill:none;stroke:var(--e-template);stroke-width:1.8;stroke-linecap:round;pointer-events:none}
+.edge.cyc{stroke:var(--e-cycle);stroke-width:2;stroke-dasharray:1 5;stroke-linecap:round}
+.edge.dim{opacity:.1}
+.edge.hot{stroke:var(--hi)!important;stroke-width:2.6!important;opacity:1!important}
+.ehit{fill:none;stroke:transparent;stroke-width:14;pointer-events:none}
+.elabel{font:600 9.5px var(--mono);fill:var(--fg-2);pointer-events:none;user-select:none}
+.elabel-bg{fill:var(--bg);stroke:var(--border);stroke-width:.8;rx:3}
+.elabel.hot,.edge-lg.hot .elabel{fill:var(--fg)}
+.edge-lg.dim{opacity:.12}
+
+/* nodes */
+.node{cursor:pointer;pointer-events:auto}
+.node:focus{outline:none}
+.nbox{fill:var(--node-bg);stroke:var(--border-2);stroke-width:1.2;rx:9}
+.node.k-view .nbox{stroke:color-mix(in srgb,var(--k-view) 45%,var(--border-2))}
+.node.k-layout .nbox{stroke:color-mix(in srgb,var(--k-layout) 45%,var(--border-2))}
+.node.k-component .nbox{stroke:color-mix(in srgb,var(--k-component) 45%,var(--border-2))}
+.node.k-model .nbox{stroke:color-mix(in srgb,var(--k-model) 45%,var(--border-2))}
+.node.k-entity .nbox{stroke:color-mix(in srgb,var(--k-entity) 45%,var(--border-2))}
+.node.k-service .nbox{stroke:color-mix(in srgb,var(--k-service) 45%,var(--border-2))}
+.node.k-pipe .nbox{stroke:color-mix(in srgb,var(--k-pipe) 45%,var(--border-2))}
+.node.k-directive .nbox{stroke:color-mix(in srgb,var(--k-directive) 45%,var(--border-2))}
+.node.k-contract .nbox{stroke:color-mix(in srgb,var(--k-contract) 45%,var(--border-2))}
+/* a coloured tag overrides the kind colour (Tags tab). Declared before .sel/.hot/.match so
+   selection and search feedback still win — bulk colouring must never mask what you clicked. */
+.node.tagged .nbox{
+  fill:color-mix(in srgb,var(--tag-color) 14%,var(--node-bg));
+  stroke:color-mix(in srgb,var(--tag-color) 65%,var(--border-2));
+}
+.node.entry .nbox{stroke-width:2.2}
+.node.sel .nbox{fill:var(--node-bg-sel);stroke:var(--accent);stroke-width:2.6}
+.node.kb .nbox{stroke-dasharray:none;filter:drop-shadow(0 0 0 transparent)}
+.nring{fill:none;stroke:none}
+.node.kb .nring{stroke:var(--accent);stroke-width:1.4;stroke-dasharray:3 3}
+.node.hot .nbox{stroke:var(--hi);stroke-width:2.6}
+.node.match .nbox{fill:var(--hi-soft)}
+.node.dim{opacity:.22}
+.node .nstripe{rx:2}
+.node.k-view .nstripe{fill:var(--k-view)} .node.k-layout .nstripe{fill:var(--k-layout)}
+.node.k-component .nstripe{fill:var(--k-component)} .node.k-model .nstripe{fill:var(--k-model)}
+.node.k-unknown .nstripe{fill:var(--k-unknown)}
+.node.k-entity .nstripe{fill:var(--k-entity)} .node.k-service .nstripe{fill:var(--k-service)}
+.node.k-pipe .nstripe{fill:var(--k-pipe)} .node.k-directive .nstripe{fill:var(--k-directive)}
+.node.k-contract .nstripe{fill:var(--k-contract)}
+.node.tagged .nstripe{fill:var(--tag-color)}
+.ncls{font:650 12.5px var(--sans);fill:var(--fg);user-select:none}
+.nsel{font:11px var(--mono);fill:var(--fg-3);user-select:none}
+.nfeat{font:600 9.5px var(--sans);fill:var(--fg-3);user-select:none;letter-spacing:.03em}
+.nbadge{font:11px var(--sans);user-select:none}
+.nbadge.entry{fill:var(--hi)}
+.nbadge.outlet{fill:var(--k-layout)}
+.nbadge.cycle{fill:var(--e-cycle)}
+.nbadge.orphan{fill:var(--warn)}
+.ntoggle-c{fill:var(--bg-2);stroke:var(--border-2);stroke-width:1.2}
+.node.entry .ntoggle-c{stroke:var(--accent)}
+.ntoggle-t{font:700 10px var(--mono);fill:var(--fg-2);text-anchor:middle;user-select:none;pointer-events:none}
+.ntoggle:hover .ntoggle-c{fill:var(--accent-2);stroke:var(--accent)}
+.nhidden-c{fill:var(--bg-3);stroke:var(--border-2);stroke-dasharray:2 2}
+
+/* cluster hulls / bridges — hull fill does not capture input so pan + node clicks work */
+.cluster-hull{pointer-events:none}
+.cluster-hull .chull{
+  fill:color-mix(in srgb, var(--cluster-fill, var(--accent)) 12%, transparent);
+  stroke:color-mix(in srgb, var(--cluster-fill, var(--accent)) 55%, var(--border-2));
+  stroke-width:1.6;
+  pointer-events:none;
+}
+.cluster-hull.sel .chull{
+  fill:color-mix(in srgb, var(--cluster-fill, var(--accent)) 22%, transparent);
+  stroke:var(--cluster-fill, var(--accent));
+  stroke-width:2.4;
+}
+.cluster-hull.dim{opacity:.22}
+.cluster-hull .cluster-label{pointer-events:auto;cursor:pointer}
+.cluster-hull .clabel{
+  font:650 12px var(--sans);fill:var(--fg);user-select:none;
+}
+.cluster-hull .csub{
+  font:10.5px var(--mono);fill:var(--fg-3);user-select:none;
+}
+.cluster-hull.c-0{--cluster-fill:#3457d5}
+.cluster-hull.c-1{--cluster-fill:#0d9488}
+.cluster-hull.c-2{--cluster-fill:#db2777}
+.cluster-hull.c-3{--cluster-fill:#d97706}
+.cluster-hull.c-4{--cluster-fill:#8b5cf6}
+.cluster-hull.c-5{--cluster-fill:#0891b2}
+.cluster-hull.c-6{--cluster-fill:#65a30d}
+.cluster-hull.c-7{--cluster-fill:#e11d48}
+.bridge{fill:none;stroke:var(--e-template);stroke-opacity:.55;stroke-linecap:round;pointer-events:none}
+.bridge-hit{fill:none;stroke:transparent;stroke-width:14;pointer-events:none}
+.bridge-lg.dim{opacity:.12}
+
+.overlay-msg{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;padding:24px;
+}
+.overlay-msg .card{
+  pointer-events:auto;max-width:440px;background:var(--bg-2);border:1px solid var(--border);border-radius:12px;
+  padding:20px;box-shadow:var(--shadow-2);text-align:center;
+}
+.overlay-msg h3{margin:0 0 6px;font-size:15px}
+.overlay-msg p{margin:0 0 12px;color:var(--fg-2);font-size:12.5px}
+.overlay-msg .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.dropzone{
+  border:2px dashed var(--border-2);border-radius:10px;padding:16px;text-align:center;color:var(--fg-2);
+  background:var(--bg);font-size:12px;
+}
+.dropzone.over{border-color:var(--accent);background:var(--accent-2)}
+
+.zoomctl{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:4px;z-index:10}
+.zoomctl .btn{width:28px;height:28px;padding:0;justify-content:center;box-shadow:var(--shadow-1)}
+.zoomlvl{
+  text-align:center;font:600 10px var(--mono);color:var(--fg-3);background:var(--bg-2);
+  border:1px solid var(--border);border-radius:5px;padding:1px 0;
+}
+.legend{
+  position:absolute;left:10px;bottom:10px;z-index:10;background:color-mix(in srgb,var(--bg-2) 92%,transparent);
+  border:1px solid var(--border);border-radius:9px;box-shadow:var(--shadow-1);font-size:11px;max-width:280px;
+}
+.legend summary{cursor:pointer;padding:5px 9px;font-weight:650;font-size:11px;list-style:none;display:flex;align-items:center;gap:5px}
+.legend summary::-webkit-details-marker{display:none}
+.legend summary::after{content:"▾";color:var(--fg-3);font-size:9px;margin-left:auto}
+.legend[open] summary::after{content:"▴"}
+.legend .lbody{padding:2px 9px 8px;display:grid;gap:3px}
+.legend .lrow{display:flex;align-items:center;gap:6px;color:var(--fg-2)}
+.legend .lrow .sw{width:14px;flex:none;display:inline-flex;align-items:center;justify-content:center}
+.legend hr{border:0;border-top:1px solid var(--border);margin:4px 0}
