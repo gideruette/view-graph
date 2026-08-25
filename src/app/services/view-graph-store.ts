@@ -15,6 +15,7 @@ import {
   pathFromEntries,
   subtreeOf,
 } from '../core/graph-model';
+import { computeEntryPollution, type PollutionReport, type PollutionScope } from '../core/entry-pollution';
 import { type VisibilityState, computeVisibleGraph, layoutGraph, NODE_H, NODE_W } from '../core/graph-layout';
 import { DEFAULT_CLUSTER_MERGE_STEPS, maxClusterMerges } from '../core/graph-clusters';
 import { layoutClusteredGraph, type ClusterLayoutResult } from '../core/cluster-layout';
@@ -123,6 +124,8 @@ export class ViewGraphStore {
   readonly theme = signal<ViewGraphTheme>('auto');
   readonly legendOpen = signal(false);
   readonly helpOpen = signal(false);
+  readonly pollutionOpen = signal(false);
+  readonly pollutionScope = signal<PollutionScope>('ui');
   readonly dropOverlayVisible = signal(false);
 
   constructor() {
@@ -403,6 +406,22 @@ export class ViewGraphStore {
       { label: 'depth', value: st.maxDepth },
     ];
   });
+
+  /**
+   * Stack mix per entry point. Reads {@link nodeTags} rather than the raw node tags, so a `tech:`
+   * tag added by hand counts like an emitted one — and so re-tagging a service immediately shows in
+   * the numbers.
+   */
+  readonly pollutionReport = computed<PollutionReport | null>(() => {
+    const d = this.data();
+    const idx = this.index();
+    if (!d || !idx) return null;
+    const tags = this.nodeTags();
+    return computeEntryPollution(d, idx, (id) => tags.get(id) ?? [], this.pollutionScope());
+  });
+
+  /** A mix needs two stacks to mean anything: a single-stack graph is 0% by construction. */
+  readonly pollutionAvailable = computed(() => (this.pollutionReport()?.techTags.length ?? 0) >= 2);
 
   readonly statusText = computed(() => {
     const d = this.data();
@@ -1465,5 +1484,23 @@ export class ViewGraphStore {
 
   closeHelp(): void {
     this.helpOpen.set(false);
+  }
+
+  togglePollution(): void {
+    this.pollutionOpen.update((v) => !v);
+  }
+
+  closePollution(): void {
+    this.pollutionOpen.set(false);
+  }
+
+  setPollutionScope(scope: PollutionScope): void {
+    this.pollutionScope.set(scope);
+  }
+
+  /** Leave the dashboard for the graph: scope the canvas to that entry point and select it. */
+  openEntryFromPollution(id: string): void {
+    this.closePollution();
+    this.setEntryRoot(id);
   }
 }

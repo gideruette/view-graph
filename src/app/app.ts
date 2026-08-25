@@ -15,6 +15,7 @@ import { FilterBar } from "./components/filter-bar/filter-bar";
 import { GraphCanvas } from "./components/graph-canvas/graph-canvas";
 import { HelpDialog } from "./components/help-dialog/help-dialog";
 import { NavPanel } from "./components/nav-panel/nav-panel";
+import { PollutionDashboard } from "./components/pollution-dashboard/pollution-dashboard";
 import { StatusBar } from "./components/status-bar/status-bar";
 import { Topbar } from "./components/topbar/topbar";
 import { TreeView } from "./components/tree-view/tree-view";
@@ -36,6 +37,7 @@ import { ViewGraphStore } from "./services/view-graph-store";
     DetailPanel,
     StatusBar,
     HelpDialog,
+    PollutionDashboard,
   ],
   templateUrl: "./app.html",
   styleUrl: "./styles/view-graph.css",

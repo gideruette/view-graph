@@ -122,6 +122,15 @@
       tabindex="-1"
       (change)="onAddFileChange($event)"
     />
+    @if (store.pollutionAvailable()) {
+    <button
+      class="btn"
+      title="How much of each entry point belongs to a stack other than the one owning most of it"
+      (click)="store.togglePollution()"
+    >
+      Pollution
+    </button>
+    }
     <button
       class="btn btn-icon"
       [title]="themeTitle()"

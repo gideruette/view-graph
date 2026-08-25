@@ -42,6 +42,36 @@ the left panel turns those labels into bulk operations, grouped by namespace:
 Both are your preferences, not part of the extract: they persist across reloads, and the filter bar
 always shows how much is hidden with a one-click **Show all**.
 
+### Pollution — how mixed each entry point is
+
+When a graph carries two or more `tech:` tags, a **Pollution** button appears in the header. It opens
+a dashboard measuring, for every entry point, the share of what it reaches that is *not* owned by the
+stack owning most of it:
+
+```
+pollution = (attributed − dominant stack) / attributed
+```
+
+The minority side rather than one named stack's share, because the question it answers is whether an
+entry point can be owned, tested or migrated inside a single stack, and that is symmetric: a
+mostly-React screen holding three Angular components is as entangled as the reverse. With two stacks
+it reduces to `min / total` and is bounded at 50%, reached on an even split.
+
+Nothing in it names a stack — the columns are whichever `tech:` tags the loaded graph carries, so an
+Angular + React front end, a front + back merge, or any other combination reads the same way. Two
+scopes are offered: **UI units** counts `type:component` / `type:view` / `type:layout`, the roles
+every UI stack has, so the sides compare like with like; **Everything** widens to every typed node
+and reports separately the nodes several stacks claim (shared code) and those none claims.
+
+Entry points reaching nothing countable are excluded and counted as *unmeasured* rather than shown at
+0%, which would read as clean. Reachable sets overlap on purpose — a shared component counts for
+every entry point that reaches it — so the rows do not partition the graph. Clicking a row scopes the
+canvas to that entry point.
+
+The same metric is available as a CLI report in the sibling extractor
+(`node-stack-export/scripts/entry-pollution.mjs`), which additionally walks the `entries` route tree
+the viewer does not yet read.
+
 ## What the Angular extractor emits
 
 Node roles come from what a class *is* to Angular, not from the folder it lives in:

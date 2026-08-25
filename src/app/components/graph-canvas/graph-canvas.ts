@@ -225,6 +225,14 @@ export class GraphCanvas {
       return;
     }
 
+    if (this.store.pollutionOpen()) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this.store.closePollution();
+      }
+      return;
+    }
+
     const target = e.target as HTMLElement | null;
     const tag = target?.tagName;
     const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';

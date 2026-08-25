@@ -1,0 +1,119 @@
+@if (store.pollutionOpen()) {
+  <div class="modal-back" (click)="onBackdropClick($event)">
+    <div class="modal modal-wide">
+      <div class="mh">
+        <h2>Stack pollution</h2>
+        <div class="pd-scope" role="group" aria-label="Which nodes to count">
+          @for (s of scopes; track s.value) {
+            <button
+              class="btn"
+              [attr.aria-pressed]="store.pollutionScope() === s.value"
+              [title]="s.title"
+              (click)="store.setPollutionScope(s.value)"
+            >
+              {{ s.label }}
+            </button>
+          }
+        </div>
+        <button #closeBtn class="btn btn-icon" aria-label="Close" (click)="store.closePollution()">×</button>
+      </div>
+
+      @let report = store.pollutionReport();
+      <div class="mb">
+        @if (!report || report.techTags.length < 2) {
+          <div class="empty-note">
+            This graph carries fewer than two <code>tech:</code> tags, so there is no mix to measure.
+          </div>
+        } @else {
+          @let overall = report.overall;
+          <p class="pd-lede">
+            Share of what an entry point reaches that is <em>not</em> owned by the stack owning most of
+            it — so 0% is a screen one stack can own alone, and the ceiling is an even split.
+          </p>
+
+          <div class="pd-summary">
+            <div class="stat">
+              <b>{{ overall.attributed }}</b><span>{{ report.scope === 'ui' ? 'ui units' : 'nodes' }}</span>
+            </div>
+            @for (s of overall.stacks; track s.tech) {
+              <div class="stat">
+                <b>{{ s.share | number: '1.0-0' }}%</b><span>{{ s.label }}</span>
+              </div>
+            }
+            @if (overall.shared) {
+              <div class="stat" title="Claimed by more than one stack — shared code, not pollution">
+                <b>{{ overall.shared }}</b><span>shared</span>
+              </div>
+            }
+            @if (overall.unattributed) {
+              <div class="stat" title="No tech: tag — the extract declined to name an owner">
+                <b>{{ overall.unattributed }}</b><span>unowned</span>
+              </div>
+            }
+            <div class="stat" [class.alert]="report.mixedCount > 0">
+              <b>{{ report.mixedCount }}/{{ report.rows.length }}</b><span>mixed entries</span>
+            </div>
+            @if (report.unmeasuredCount) {
+              <div class="stat" title="Reach nothing countable at this scope — not measured rather than clean">
+                <b>{{ report.unmeasuredCount }}</b><span>unmeasured</span>
+              </div>
+            }
+          </div>
+
+          @if (!report.rows.length) {
+            <div class="empty-note">No entry point reaches anything countable at this scope.</div>
+          } @else {
+            <table class="pd-table">
+              <thead>
+                <tr>
+                  <th scope="col">Entry point</th>
+                  @for (s of overall.stacks; track s.tech) {
+                    <th scope="col" class="num">{{ s.label }}</th>
+                  }
+                  <th scope="col" class="num">units</th>
+                  <th scope="col" class="pd-bar-col">pollution</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of report.rows; track r.id) {
+                  <tr
+                    tabindex="0"
+                    [class.selected]="store.selected() === r.id"
+                    [title]="'Open ' + r.name + ' on the canvas'"
+                    (click)="store.openEntryFromPollution(r.id)"
+                    (keydown.enter)="store.openEntryFromPollution(r.id)"
+                  >
+                    <th scope="row">
+                      <span class="nm">{{ r.name }}</span>
+                      <span class="sub mono">{{ r.sub }}</span>
+                    </th>
+                    @for (s of r.stacks; track s.tech) {
+                      <td class="num" [class.dominant]="r.dominant === s.tech">
+                        @if (s.count) {
+                          {{ s.count }} <span class="pc">{{ s.share | number: '1.0-0' }}%</span>
+                        } @else {
+                          <span class="zero">—</span>
+                        }
+                      </td>
+                    }
+                    <td class="num total">{{ r.attributed }}</td>
+                    <td class="pd-bar-col">
+                      <div class="pd-bar" [class]="severity(r.pollution)">
+                        <div class="pd-bar-track"><div class="pd-bar-fill" [style.width]="barWidth(r.pollution)"></div></div>
+                        <span class="pd-bar-val">{{ r.pollution | number: '1.0-1' }}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            <p class="pd-foot">
+              Reachable sets overlap on purpose: a shared component counts for every entry point that
+              reaches it. Click a row to scope the canvas to that entry point.
+            </p>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}

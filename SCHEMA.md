@@ -114,9 +114,10 @@ and typically outside the injection graph). Others an emitter may find worth sur
 
 Notes for emitters:
 
-- Emit `tech:*` on nodes your stack owns. Do **not** put `tech:*` on shared **contract** nodes —
+- Emit `tech:*` on nodes your stack owns. Do **not** put `tech:*` on shared **contract** nodes,
+  nor on **entity** / DTO nodes (a TypeScript `interface` or type alias is data, not a stack) —
   they belong to no single side, and tagging them would make hiding one stack also hide the
-  boundary that joins it to the other.
+  boundary or the data layer that joins it to the other.
 - Prefer a signal the framework guarantees over a folder convention: `@Pipe` or
   `implements CanActivate` means the same thing in every project, `app/views/` does not.
 - Tags are **additive on merge**: the union of every extract's tags for that `id` (see § Merge rules).

@@ -1,0 +1,56 @@
+/* Stack-pollution dashboard. Reuses the .modal-back / .modal / .stat / .empty-note atoms; only the
+   wider shell and the table itself are new. */
+.modal.modal-wide{max-width:920px}
+.modal .mh .pd-scope{display:flex;gap:6px;margin-left:auto}
+
+.pd-lede{margin:0 0 12px;font-size:12px;line-height:1.6;color:var(--fg-2)}
+.pd-lede em{color:var(--fg);font-style:normal;font-weight:600}
+
+.pd-summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.pd-summary .stat{
+  display:flex;flex-direction:column;align-items:flex-start;gap:1px;
+  padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg-3);
+}
+.pd-summary .stat b{font-size:14px;line-height:1.2}
+.pd-summary .stat span{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--fg-3)}
+.pd-summary .stat.alert b{color:var(--warn)}
+
+.pd-table{width:100%;border-collapse:collapse;font-size:12px}
+.pd-table th,.pd-table td{padding:5px 8px;text-align:left;vertical-align:middle}
+.pd-table thead th{
+  position:sticky;top:0;z-index:1;background:var(--bg-2);
+  border-bottom:1px solid var(--border-2);
+  font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--fg-3);font-weight:600;
+}
+.pd-table th.num,.pd-table td.num{text-align:right;white-space:nowrap}
+.pd-table tbody tr{border-bottom:1px solid var(--border);cursor:pointer}
+.pd-table tbody tr:hover{background:var(--bg-3)}
+.pd-table tbody tr.selected{background:var(--accent-2)}
+.pd-table tbody tr:last-child{border-bottom:0}
+.pd-table tbody th{font-weight:500;min-width:0}
+.pd-table tbody th .nm{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px}
+.pd-table tbody th .sub{display:block;color:var(--fg-3);font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px}
+.pd-table td.dominant{font-weight:700}
+.pd-table td .pc{color:var(--fg-3);font-size:10.5px}
+.pd-table td .zero{color:var(--fg-3)}
+.pd-table td.total{color:var(--fg-2)}
+
+/* A fixed 0–100% track, never rescaled to the worst row: with two stacks the ceiling is 50%, and a
+   half-full bar reading as "as mixed as it gets" is the honest picture. */
+.pd-bar-col{width:190px}
+.pd-bar{display:flex;align-items:center;gap:8px}
+.pd-bar-track{flex:1;height:6px;border-radius:999px;background:var(--bg-4);overflow:hidden}
+.pd-bar-fill{height:100%;border-radius:999px;background:var(--fg-3);transition:width .15s}
+.pd-bar-val{width:44px;text-align:right;font-variant-numeric:tabular-nums;color:var(--fg-2)}
+.pd-bar.ok .pd-bar-val{color:var(--ok)}
+.pd-bar.warn .pd-bar-fill{background:var(--warn)}
+.pd-bar.warn .pd-bar-val{color:var(--warn)}
+.pd-bar.danger .pd-bar-fill{background:var(--danger)}
+.pd-bar.danger .pd-bar-val{color:var(--danger);font-weight:600}
+
+.pd-foot{margin:12px 0 0;font-size:11px;line-height:1.6;color:var(--fg-3)}
+
+@media (max-width:720px){
+  .pd-table tbody th .nm,.pd-table tbody th .sub{max-width:150px}
+  .pd-bar-col{width:110px}
+}
