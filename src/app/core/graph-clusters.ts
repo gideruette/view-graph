@@ -12,7 +12,7 @@
  *    be reached when the contract was not collapsed.
  * 3. The slider then merges clusters one-by-one (strongest remaining coupling first).
  */
-import type { GraphData, GraphEdge, GraphIndex, GraphNode } from './graph-model';
+import type { EntryTreeNode, GraphData, GraphEdge, GraphIndex, GraphNode } from './graph-model';
 import { inEdges, outEdges } from './graph-model';
 
 /** Minimal visible-subgraph shape (avoids importing graph-layout). */
@@ -77,6 +77,9 @@ export function detectCommunities(
 
 /** How many slider notches are available for the current visible graph. */
 export function maxClusterMerges(view: ClusterableGraph, index: GraphIndex, data: GraphData): number {
+  /* The merge slider exists to compensate for the flat heuristic's imprecision; it has no meaning
+   * once grouping instead follows the extractor's real route/sub-route tree. */
+  if (data.entries.length) return 0;
   return planEntryClusters(view, index, data)?.maxMerges ?? 0;
 }
 
@@ -207,6 +210,134 @@ function assignByClosestEntry(
   });
 
   return { assignment, depths };
+}
+
+/**
+ * Route/sub-route grouping built directly from the extractor's `entries` tree (SCHEMA.md § entries),
+ * instead of the flat entry-point community partition above. Each tree level competes for nodes via
+ * the same closest-entry BFS (`assignByClosestEntry`), scoped to the pool its parent already claimed —
+ * so a node ends up under the deepest route that actually reaches it, mirroring the real route nesting
+ * (parent shell -> nested route -> its own sub-routes) instead of one flat layer of siblings.
+ */
+export interface ClusterNode {
+  id: string;
+  label: string;
+  colorIndex: number;
+  /** Nodes claimed at this level specifically (not further claimed by any child entry). */
+  ownNodeIds: string[];
+  /** All nodes under this branch: ownNodeIds plus every descendant's nodeIds. */
+  nodeIds: string[];
+  children: ClusterNode[];
+}
+
+/** Builds the nested cluster tree, or null when the extract carries no `entries` (fall back to flat mode). */
+export function buildEntryClusterTree(view: ClusterableGraph, index: GraphIndex, data: GraphData): ClusterNode[] | null {
+  if (!data.entries.length) return null;
+  const visible = view.nodes;
+  if (!visible.size) return null;
+
+  let idSeq = 0;
+  const nextId = () => `e${idSeq++}`;
+
+  const build = (siblings: EntryTreeNode[], available: Set<string>): ClusterNode[] => {
+    if (!siblings.length || !available.size) return [];
+
+    const seeded = siblings.filter((s) => s.nodeId && available.has(s.nodeId));
+    const seedIds = seeded.map((s) => s.nodeId!);
+    const { assignment } = seedIds.length
+      ? assignByClosestEntry(seedIds, available, index, data)
+      : { assignment: new Map<string, string>() };
+
+    const poolBySeed = new Map<string, Set<string>>();
+    seedIds.forEach((id) => poolBySeed.set(id, new Set()));
+    assignment.forEach((seedId, nodeId) => poolBySeed.get(seedId)?.add(nodeId));
+
+    const remaining = new Set(available);
+    poolBySeed.forEach((pool) => pool.forEach((id) => remaining.delete(id)));
+
+    const result: ClusterNode[] = [];
+
+    seeded.forEach((s) => {
+      const pool = poolBySeed.get(s.nodeId!)!;
+      const children = build(s.children, pool);
+      const claimed = new Set<string>();
+      children.forEach((c) => c.nodeIds.forEach((id) => claimed.add(id)));
+      result.push({
+        id: nextId(),
+        label: s.label,
+        colorIndex: 0,
+        ownNodeIds: [...pool].filter((id) => !claimed.has(id)).sort(),
+        nodeIds: [...pool].sort(),
+        children,
+      });
+    });
+
+    /* Pure grouping labels (no nodeId of their own — e.g. a route with only a path, no component)
+     * can't seed a BFS round, so their descendants compete only for whatever their seeded siblings
+     * left behind, claimed in declaration order. */
+    siblings
+      .filter((s) => !seeded.includes(s))
+      .forEach((s) => {
+        if (!remaining.size) return;
+        const children = build(s.children, new Set(remaining));
+        const claimed = new Set<string>();
+        children.forEach((c) => c.nodeIds.forEach((id) => claimed.add(id)));
+        if (!claimed.size) return;
+        claimed.forEach((id) => remaining.delete(id));
+        result.push({
+          id: nextId(),
+          label: s.label,
+          colorIndex: 0,
+          ownNodeIds: [],
+          nodeIds: [...claimed].sort(),
+          children,
+        });
+      });
+
+    return result;
+  };
+
+  const top = build(data.entries, new Set(visible));
+  const claimedTop = new Set<string>();
+  top.forEach((c) => c.nodeIds.forEach((id) => claimedTop.add(id)));
+  const leftover = [...visible].filter((id) => !claimedTop.has(id)).sort();
+  if (leftover.length) {
+    top.push({ id: 'misc', label: 'Other', colorIndex: 0, ownNodeIds: leftover, nodeIds: leftover, children: [] });
+  }
+  if (!top.length) return null;
+
+  let colorSeq = 0;
+  const assignColor = (n: ClusterNode): void => {
+    n.colorIndex = colorSeq++;
+    n.children.forEach(assignColor);
+  };
+  top.forEach(assignColor);
+
+  return top;
+}
+
+/** Flattens the nested tree into the same `{communities, assignment}` shape the flat partition produces,
+ *  so folder-tree rendering and node->cluster lookups work unmodified. `assignment` maps each node to the
+ *  deepest cluster that actually claims it (its `ownNodeIds` owner), never an ancestor. */
+export function flattenClusterTree(top: ClusterNode[]): {
+  assignment: Map<string, string>;
+  labeled: LabeledCommunity[];
+} {
+  const assignment = new Map<string, string>();
+  const labeled: LabeledCommunity[] = [];
+  const visit = (n: ClusterNode): void => {
+    labeled.push({
+      id: n.id,
+      nodeIds: n.nodeIds,
+      label: n.label,
+      subtitle: `${n.nodeIds.length} node${n.nodeIds.length === 1 ? '' : 's'}`,
+      colorIndex: n.colorIndex,
+    });
+    n.ownNodeIds.forEach((id) => assignment.set(id, n.id));
+    n.children.forEach(visit);
+  };
+  top.forEach(visit);
+  return { assignment, labeled };
 }
 
 function groupByAssignment(assignment: Map<string, string>): Map<string, string[]> {

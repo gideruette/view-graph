@@ -4,8 +4,11 @@
  */
 import {
   aggregateClusterEdges,
+  buildEntryClusterTree,
   detectCommunities,
+  flattenClusterTree,
   labelCommunities,
+  type ClusterNode,
   type LabeledCommunity,
 } from './graph-clusters';
 import type { GraphData, GraphIndex } from './graph-model';
@@ -67,6 +70,9 @@ export function layoutClusteredGraph(
   nodeTags: ReadonlyMap<string, string[]>,
   resolution: number,
 ): ClusterLayoutResult {
+  const tree = buildEntryClusterTree(view, index, data);
+  if (tree) return layoutEntryClusteredGraph(tree, view, index);
+
   const part = detectCommunities(view, index, data, resolution);
   const communities = labelCommunities(part, data, nodeTags);
 
@@ -272,6 +278,228 @@ export function layoutClusteredGraph(
     clusterBridges: bridges,
     communities,
     assignment: part.assignment,
+  };
+}
+
+/**
+ * Nested route-tree layout: each `ClusterNode` becomes a rounded-rectangle hull containing its own
+ * loose nodes plus its children's hulls, packed recursively the same way the flat mode packs its
+ * (single-level) communities. Unlike the flat mode's organic convex hulls, nesting uses plain padded
+ * rectangles — they compose without the overlap/containment edge cases a convex hull would need to
+ * avoid when hulls must strictly contain other hulls.
+ */
+interface RecursiveBlock {
+  w: number;
+  h: number;
+  positions: Map<string, NodePosition>;
+  edges: EdgeGeometry[];
+  hulls: ClusterHull[];
+  bridges: ClusterBridge[];
+  /** Every node under this block, own + nested — used to classify cross-block edges as bridges. */
+  nodeIds: string[];
+  /** Identity used only for bridge bookkeeping; not a real cluster for anonymous "loose nodes" blocks. */
+  memberId: string;
+}
+
+function layoutOwnLeafBlock(memberId: string, ownNodeIds: string[], view: VisibleGraph, index: GraphIndex): RecursiveBlock {
+  const nodeSet = new Set(ownNodeIds);
+  const edges = view.edges.filter((e) => nodeSet.has(e.source) && nodeSet.has(e.target));
+  const hasIn = new Set(edges.map((e) => e.target));
+  const roots = ownNodeIds.filter((id) => !hasIn.has(id));
+  const localView: VisibleGraph = { roots: roots.length ? roots : ownNodeIds.slice(0, 1), nodes: nodeSet, edges };
+  const local = layoutGraph(localView, index);
+  return {
+    w: Math.max(NODE_W, local.bbox.w),
+    h: Math.max(NODE_H, local.bbox.h),
+    positions: local.nodes,
+    edges: local.edges,
+    hulls: [],
+    bridges: [],
+    nodeIds: ownNodeIds.slice(),
+    memberId,
+  };
+}
+
+/** Shelf-packs already-laid-out blocks and merges their (already-offset-able) contents. */
+function packRecursiveBlocks(
+  blocks: RecursiveBlock[],
+  gap: number,
+): {
+  placed: { block: RecursiveBlock; ox: number; oy: number }[];
+  positions: Map<string, NodePosition>;
+  edges: EdgeGeometry[];
+  hulls: ClusterHull[];
+  bridges: ClusterBridge[];
+  w: number;
+  h: number;
+} {
+  const ordered = blocks.slice().sort((a, b) => b.w * b.h - a.w * a.h || a.memberId.localeCompare(b.memberId));
+  const totalArea = ordered.reduce((s, b) => s + b.w * b.h, 0);
+  const targetRowW = Math.max(ordered[0]?.w ?? 400, Math.sqrt(totalArea) * 1.35);
+
+  let cursorX = 0;
+  let cursorY = 0;
+  let rowH = 0;
+  const placed: { block: RecursiveBlock; ox: number; oy: number }[] = [];
+  ordered.forEach((block) => {
+    if (cursorX > 0 && cursorX + block.w > targetRowW) {
+      cursorX = 0;
+      cursorY += rowH + gap;
+      rowH = 0;
+    }
+    placed.push({ block, ox: cursorX, oy: cursorY });
+    cursorX += block.w + gap;
+    rowH = Math.max(rowH, block.h);
+  });
+
+  const positions = new Map<string, NodePosition>();
+  const edges: EdgeGeometry[] = [];
+  const hulls: ClusterHull[] = [];
+  const bridges: ClusterBridge[] = [];
+  let maxX = 0;
+  let maxY = 0;
+  placed.forEach(({ block, ox, oy }) => {
+    block.positions.forEach((p, id) => positions.set(id, { ...p, x: p.x + ox, y: p.y + oy }));
+    block.edges.forEach((g) =>
+      edges.push({ ...g, d: shiftSvgPath(g.d, ox, oy), mid: { x: g.mid.x + ox, y: g.mid.y + oy } }),
+    );
+    block.hulls.forEach((h) =>
+      hulls.push({ ...h, path: shiftSvgPath(h.path, ox, oy), labelX: h.labelX + ox, labelY: h.labelY + oy, x: h.x + ox, y: h.y + oy }),
+    );
+    block.bridges.forEach((b) =>
+      bridges.push({ ...b, d: shiftSvgPath(b.d, ox, oy), mid: { x: b.mid.x + ox, y: b.mid.y + oy } }),
+    );
+    maxX = Math.max(maxX, ox + block.w);
+    maxY = Math.max(maxY, oy + block.h);
+  });
+  return { placed, positions, edges, hulls, bridges, w: maxX, h: maxY };
+}
+
+/** Edges that cross between two sibling blocks at one packing level (own-nodes vs a child, or child vs child). */
+function crossBlockBridges(
+  parentId: string,
+  placed: { block: RecursiveBlock; ox: number; oy: number }[],
+  view: VisibleGraph,
+): ClusterBridge[] {
+  const memberOf = new Map<string, string>();
+  const centerOf = new Map<string, { x: number; y: number }>();
+  placed.forEach(({ block, ox, oy }) => {
+    block.nodeIds.forEach((id) => memberOf.set(id, block.memberId));
+    centerOf.set(block.memberId, { x: ox + block.w / 2, y: oy + block.h / 2 });
+  });
+
+  const bag = new Map<string, { a: string; b: string; weight: number }>();
+  view.edges.forEach((e) => {
+    const ma = memberOf.get(e.source);
+    const mb = memberOf.get(e.target);
+    if (!ma || !mb || ma === mb) return;
+    const key = ma < mb ? `${ma}\0${mb}` : `${mb}\0${ma}`;
+    const row = bag.get(key) ?? { a: ma, b: mb, weight: 0 };
+    row.weight++;
+    bag.set(key, row);
+  });
+
+  const bridges: ClusterBridge[] = [];
+  bag.forEach((row) => {
+    const s = centerOf.get(row.a);
+    const t = centerOf.get(row.b);
+    if (!s || !t) return;
+    const dx = t.x - s.x;
+    const dy = t.y - s.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    const bend = Math.min(80, dist * 0.2);
+    const nx = -dy / dist;
+    const ny = dx / dist;
+    const cx = (s.x + t.x) / 2 + nx * bend;
+    const cy = (s.y + t.y) / 2 + ny * bend;
+    bridges.push({
+      key: `bridge:${parentId}:${row.a}->${row.b}`,
+      d: `M${s.x},${s.y} Q${cx},${cy} ${t.x},${t.y}`,
+      weight: row.weight,
+      sourceCluster: row.a,
+      targetCluster: row.b,
+      mid: { x: cx, y: cy },
+    });
+  });
+  return bridges;
+}
+
+function layoutClusterNode(node: ClusterNode, view: VisibleGraph, index: GraphIndex): RecursiveBlock {
+  const childBlocks = node.children.map((c) => layoutClusterNode(c, view, index));
+  const ownBlock = node.ownNodeIds.length ? layoutOwnLeafBlock(`${node.id}~own`, node.ownNodeIds, view, index) : null;
+  const members = ownBlock ? [ownBlock, ...childBlocks] : childBlocks;
+
+  const packed = packRecursiveBlocks(members, CLUSTER_GAP * 0.5);
+  const crossBridges = crossBlockBridges(node.id, packed.placed, view);
+
+  const contentOx = CLUSTER_PAD;
+  const contentOy = CLUSTER_PAD + LABEL_H;
+  const positions = new Map<string, NodePosition>();
+  packed.positions.forEach((p, id) => positions.set(id, { ...p, x: p.x + contentOx, y: p.y + contentOy }));
+  const edges = packed.edges.map((g) => ({
+    ...g,
+    d: shiftSvgPath(g.d, contentOx, contentOy),
+    mid: { x: g.mid.x + contentOx, y: g.mid.y + contentOy },
+  }));
+  const nestedHulls = packed.hulls.map((h) => ({
+    ...h,
+    path: shiftSvgPath(h.path, contentOx, contentOy),
+    labelX: h.labelX + contentOx,
+    labelY: h.labelY + contentOy,
+    x: h.x + contentOx,
+    y: h.y + contentOy,
+  }));
+  const bridges = [...packed.bridges, ...crossBridges].map((b) => ({
+    ...b,
+    d: shiftSvgPath(b.d, contentOx, contentOy),
+    mid: { x: b.mid.x + contentOx, y: b.mid.y + contentOy },
+  }));
+
+  const w = packed.w + CLUSTER_PAD * 2;
+  const h = packed.h + CLUSTER_PAD * 2 + LABEL_H;
+  const ownHull: ClusterHull = {
+    id: node.id,
+    label: node.label,
+    subtitle: `${node.nodeIds.length} node${node.nodeIds.length === 1 ? '' : 's'}`,
+    path: roundedHullPath(rectCorners(0, 0, w, h), 16),
+    labelX: 10,
+    labelY: 16,
+    nodeIds: node.nodeIds,
+    colorIndex: node.colorIndex,
+    x: 0,
+    y: 0,
+    w,
+    h,
+  };
+
+  return {
+    w,
+    h,
+    positions,
+    edges,
+    hulls: [ownHull, ...nestedHulls],
+    bridges,
+    nodeIds: node.nodeIds,
+    memberId: node.id,
+  };
+}
+
+/** Route/sub-route-tree variant of `layoutClusteredGraph`, used whenever the extract carries `entries`. */
+function layoutEntryClusteredGraph(tree: ClusterNode[], view: VisibleGraph, index: GraphIndex): ClusterLayoutResult {
+  const { assignment, labeled } = flattenClusterTree(tree);
+  const blocks = tree.map((n) => layoutClusterNode(n, view, index));
+  const packed = packRecursiveBlocks(blocks, CLUSTER_GAP);
+  const bridges = [...packed.bridges, ...crossBlockBridges('root', packed.placed, view)];
+
+  return {
+    nodes: packed.positions,
+    edges: packed.edges,
+    layers: [],
+    bbox: { x: 0, y: 0, w: Math.max(NODE_W, packed.w), h: Math.max(NODE_H, packed.h) },
+    clusters: packed.hulls,
+    clusterBridges: bridges,
+    communities: labeled,
+    assignment,
   };
 }
 

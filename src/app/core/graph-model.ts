@@ -26,6 +26,16 @@ export interface GraphMeta {
   warnings: string[];
 }
 
+/** Route/sub-route tree from SCHEMA.md v4 `entries` — mirrors node-stack-export's EntryTreeNode. */
+export interface EntryTreeNode {
+  id: string;
+  label: string;
+  path: string | null;
+  /** Graph node this entry corresponds to, or null for a pure grouping label (no routed component). */
+  nodeId: string | null;
+  children: EntryTreeNode[];
+}
+
 export interface GraphStats {
   nodeCount: number;
   edgeCount: number;
@@ -39,6 +49,8 @@ export interface GraphData {
   generatedAt: string | null;
   meta: GraphMeta;
   entryPoints: string[];
+  /** Hierarchical route/sub-route tree (SCHEMA.md § entries). Empty when the extractor didn't emit one. */
+  entries: EntryTreeNode[];
   nodes: GraphNode[];
   edges: GraphEdge[];
   stats: GraphStats;
@@ -217,6 +229,12 @@ export function normalizeGraph(raw: unknown): NormalizeResult {
     });
   }
 
+  const rawEntries = rawObj['entries'];
+  if (rawEntries != null && !isArr(rawEntries)) warn('`entries` is not an array — ignored.');
+  const entries = arr(rawEntries)
+    .map((e, i) => readEntryNode(e, byId, warn, `entries[${i}]`))
+    .filter((e): e is EntryTreeNode => !!e);
+
   let eps = arr(rawObj['entryPoints'])
     .map(str)
     .filter((id) => {
@@ -301,6 +319,7 @@ export function normalizeGraph(raw: unknown): NormalizeResult {
       generatedAt: str(rawObj['generatedAt']) || null,
       meta,
       entryPoints: eps,
+      entries,
       nodes,
       edges,
       stats,
@@ -308,6 +327,42 @@ export function normalizeGraph(raw: unknown): NormalizeResult {
     },
     errors,
     warnings,
+  };
+}
+
+/** Parses one `entries` tree node, dropping malformed nodes and clearing dangling `nodeId` refs. */
+function readEntryNode(
+  raw: unknown,
+  byId: Map<string, GraphNode>,
+  warn: (m: string) => void,
+  hint: string,
+): EntryTreeNode | null {
+  if (raw == null || typeof raw !== 'object' || isArr(raw)) {
+    warn(`${hint} is not an object — dropped.`);
+    return null;
+  }
+  const o = raw as Record<string, unknown>;
+  const id = str(o['id']);
+  if (!id) {
+    warn(`${hint} has no \`id\` — dropped.`);
+    return null;
+  }
+  let nodeId = o['nodeId'] == null ? null : str(o['nodeId']) || null;
+  if (nodeId && !byId.has(nodeId)) {
+    warn(`${hint}: unknown nodeId "${nodeId}" — cleared.`);
+    nodeId = null;
+  }
+  const rawChildren = o['children'];
+  if (rawChildren != null && !isArr(rawChildren)) warn(`${hint}.children is not an array — ignored.`);
+  const children = arr(rawChildren)
+    .map((c, i) => readEntryNode(c, byId, warn, `${hint}.children[${i}]`))
+    .filter((c): c is EntryTreeNode => !!c);
+  return {
+    id,
+    label: str(o['label']) || id,
+    path: o['path'] == null ? null : str(o['path']) || null,
+    nodeId,
+    children,
   };
 }
 
